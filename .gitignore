@@ -1,0 +1,8 @@
+tmp1.py
+tmp2.py
+
+*.pyc
+*.jpg
+*.json
+
+__pycache__/
