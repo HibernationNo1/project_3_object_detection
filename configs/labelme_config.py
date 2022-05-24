@@ -1,5 +1,10 @@
+from __future__ import annotations
+
+
 dir_info = dict(
-    dataset_dir = "train_dataset",
+    labelme_dir = "labelme",
+    annotations_dir = "annotations",
+    dataset_dir = "train_dataset",      
     org_images_dir = 'dataset'
 )
 
