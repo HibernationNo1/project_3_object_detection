@@ -2,25 +2,35 @@
 
 **`labelme(dir)`**
 
-- `plant_type(dir)` 
+- `annotations(dir)` 
 
-  - `{plant_type}_1(dir)`
+  - `{category_dataset}_1(dir)`
 
-  - `{plant_type}_2(dir)`
+  - `{category_dataset}_2(dir)`
 
     ...
 
-  - `{plant_type}_N(dir)`
+  - `{category_dataset}_N(dir)`
+
+    - `image_1.jpg`
+
+    - `image_1.json`
+
+      ...
+
+    - `image_N.jpg`
+
+    - `image_N.json`
 
 - `train_dataset(dir)`
 
-  - `{yyyy-mm-dd}_main_plant_type_1(dir)`
+  - `{yyyy-mm-dd}_{category_dataset}_1(dir)`
 
-  - `{yyyy-mm-dd}_main_plant_type_2(dir)`
+  - `{yyyy-mm-dd}_{category_dataset}_2(dir)`
 
     ...
 
-  - `{yyyy-mm-dd}_main_plant_type_N(dir)`
+  - `{yyyy-mm-dd}_{category_dataset}_N(dir)`
 
     - `dataset(dir)`
 
@@ -32,7 +42,7 @@
 
       - `image_3.jpg`
 
-      - `{yyyy_mm_dd}_{plant_type}_train_dataset.json`
+      - `{yyyy_mm_dd}_{category_dataset}_train_dataset.json`
 
     - `gt_images(dir)`   *option*
 
