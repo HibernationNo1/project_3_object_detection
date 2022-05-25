@@ -5,10 +5,10 @@ dir_info = dict(
     labelme_dir = "labelme",
     annotations_dir = "annotations",
     dataset_dir = "train_dataset",      
-    org_images_dir = 'dataset'
+    org_images_dir = 'org_images'
 )
 
-option = dict(
+options = dict(
     save_gt_image = False,
     visul_gt_image_dir = 'gt_images',
     augmentation = dict(
@@ -17,12 +17,13 @@ option = dict(
         resizing_max_size = 1280,       # resizing을 수행할 때 긴 면의 size
         vertivcal_flip_flag = False     # flip으로 augmentation
     ),
-    non_point = True        # point 라벨링이 되어있는 dataset이 포함되어 있지만, point label을 사용하지 않을 경우 True
+    only_val_obj = False        # valid_objec에 포함되지 않는 라벨이 있을 때 무시하는 경우 False, Error 발생시키는 경우 True
 )
 
 json = dict(
-    vaild_type=['paprika', "strawberry", "melon", 'onion', "seeding_pepper", 'cucumber', 'tomato'],
-    vaild_object = ["leaf", 'midrid', 'stem', 'petiole', 'flower', 'fruit', 'y_fruit', 'cap', 
+    category = None,
+    valid_categorys=['paprika', "strawberry", "melon", 'onion', "seeding_pepper", 'cucumber', 'tomato', 'test'],
+    valid_object = ["leaf", 'midrid', 'stem', 'petiole', 'flower', 'fruit', 'y_fruit', 'cap', 
                     'first_midrid', 'last_midrid', 'mid_midrid', 'side_midrid'],
     file_name = 'dataset.json'
 )
