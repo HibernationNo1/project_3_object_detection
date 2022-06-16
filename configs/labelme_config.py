@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time                      
 
 
 dir_info = dict(
@@ -26,4 +27,17 @@ json = dict(
     valid_object = ["leaf", 'midrid', 'stem', 'petiole', 'flower', 'fruit', 'y_fruit', 'cap', 
                     'first_midrid', 'last_midrid', 'mid_midrid', 'side_midrid'],
     file_name = 'dataset.json'
+    )
+
+dataset = dict(
+    info = dict(description = 'Hibernation Custom Dataset',
+                url = ' ',
+                version = '0.0.1',
+                year = 2022,
+                contributor = ' ',
+                data_created = f"{time.strftime('%Y/%m/%d', time.localtime(time.time()))}"),
+    licenses = dict(url = ' ',
+                    id = 1,
+                    name = ' ')   
+    
 )
