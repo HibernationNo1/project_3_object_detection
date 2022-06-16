@@ -1,0 +1,22 @@
+#-- python 3.8 --
+
+opencv-python
+Pillow
+pytz
+PyYAML
+yacs
+termcolor
+tqdm
+
+### cudatoolkit, torch
+# conda create -n mask_2 python=3.8 pytorch==1.10.0 cudatoolkit=10.2 torchvision -c pytorch -y
+# conda activate mask
+
+# pip install openmim
+# mim install mmcv-full         # 'cp949' codec can't decode byte 0xe2 in position 1179: illegal multibyte sequence
+
+
+## install MMDetection manually
+# pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu102/torch1.10.0/index.html
+# pip install mmdet        
+
