@@ -6,3 +6,8 @@ tmp2.py
 *.json
 
 __pycache__/
+custom_mmdet/
+
+data/
+work_dir/
+labelme/
