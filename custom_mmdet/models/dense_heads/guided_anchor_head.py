@@ -6,7 +6,7 @@ import torch.nn as nn
 from mmcv.ops import DeformConv2d, MaskedConv2d
 from mmcv.runner import BaseModule, force_fp32
 
-from mmdet.core import (anchor_inside_flags, build_assigner, build_bbox_coder,
+from custom_mmdet.core import (anchor_inside_flags, build_assigner, build_bbox_coder,
                         build_prior_generator, build_sampler, calc_region,
                         images_to_levels, multi_apply, multiclass_nms, unmap)
 from ..builder import HEADS, build_loss

@@ -5,11 +5,11 @@ import warnings
 import numpy as np
 import torch
 
-from mmdet.core import (bbox2roi, bbox_mapping, merge_aug_bboxes,
+from custom_mmdet.core import (bbox2roi, bbox_mapping, merge_aug_bboxes,
                         merge_aug_masks, multiclass_nms)
 
 if sys.version_info >= (3, 7):
-    from mmdet.utils.contextmanagers import completed
+    from custom_mmdet.utils.contextmanagers import completed
 
 
 class BBoxTestMixin:

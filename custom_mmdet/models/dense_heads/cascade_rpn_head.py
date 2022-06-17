@@ -9,9 +9,9 @@ from mmcv import ConfigDict
 from mmcv.ops import DeformConv2d, batched_nms
 from mmcv.runner import BaseModule, ModuleList
 
-from mmdet.core import (RegionAssigner, build_assigner, build_sampler,
+from custom_mmdet.core import (RegionAssigner, build_assigner, build_sampler,
                         images_to_levels, multi_apply)
-from mmdet.core.utils import select_single_mlvl
+from custom_mmdet.core.utils import select_single_mlvl
 from ..builder import HEADS, build_head
 from .base_dense_head import BaseDenseHead
 from .rpn_head import RPNHead

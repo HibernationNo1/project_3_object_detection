@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmdet.core import bbox2roi
+from custom_mmdet.core import bbox2roi
 from ..builder import HEADS
 from ..losses.pisa_loss import carl_loss, isr_p
 from .standard_roi_head import StandardRoIHead

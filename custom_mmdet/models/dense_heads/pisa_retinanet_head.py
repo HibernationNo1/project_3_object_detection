@@ -2,7 +2,7 @@
 import torch
 from mmcv.runner import force_fp32
 
-from mmdet.core import images_to_levels
+from custom_mmdet.core import images_to_levels
 from ..builder import HEADS
 from ..losses import carl_loss, isr_p
 from .retina_head import RetinaHead

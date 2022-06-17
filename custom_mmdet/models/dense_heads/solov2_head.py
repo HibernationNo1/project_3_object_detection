@@ -9,9 +9,9 @@ import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, auto_fp16, force_fp32
 
-from mmdet.core import InstanceData, mask_matrix_nms, multi_apply
-from mmdet.core.utils import center_of_mass, generate_coordinate
-from mmdet.models.builder import HEADS
+from custom_mmdet.core import InstanceData, mask_matrix_nms, multi_apply
+from custom_mmdet.core.utils import center_of_mass, generate_coordinate
+from custom_mmdet.models.builder import HEADS
 from .solo_head import SOLOHead
 
 

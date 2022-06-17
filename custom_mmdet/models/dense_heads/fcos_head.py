@@ -6,7 +6,7 @@ import torch.nn as nn
 from mmcv.cnn import Scale
 from mmcv.runner import force_fp32
 
-from mmdet.core import multi_apply, reduce_mean
+from custom_mmdet.core import multi_apply, reduce_mean
 from ..builder import HEADS, build_loss
 from .anchor_free_head import AnchorFreeHead
 

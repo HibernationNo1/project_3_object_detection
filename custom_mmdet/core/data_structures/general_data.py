@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import torch
 
-from mmdet.utils.util_mixins import NiceRepr
+from custom_mmdet.utils.util_mixins import NiceRepr
 
 
 class GeneralData(NiceRepr):

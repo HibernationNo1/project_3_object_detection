@@ -2,8 +2,8 @@
 import mmcv
 import numpy as np
 
-from mmdet.core import INSTANCE_OFFSET, bbox2result
-from mmdet.core.visualization import imshow_det_bboxes
+from custom_mmdet.core import INSTANCE_OFFSET, bbox2result
+from custom_mmdet.core.visualization import imshow_det_bboxes
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .single_stage import SingleStageDetector
 

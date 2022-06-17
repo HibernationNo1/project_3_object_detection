@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, merge_aug_bboxes,
+from custom_mmdet.core import (bbox2result, bbox2roi, bbox_mapping, merge_aug_bboxes,
                         merge_aug_masks, multiclass_nms)
 from ..builder import HEADS, build_head, build_roi_extractor
 from ..utils.brick_wrappers import adaptive_avg_pool2d

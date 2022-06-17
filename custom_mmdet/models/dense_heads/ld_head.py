@@ -2,7 +2,7 @@
 import torch
 from mmcv.runner import force_fp32
 
-from mmdet.core import bbox_overlaps, multi_apply, reduce_mean
+from custom_mmdet.core import bbox_overlaps, multi_apply, reduce_mean
 from ..builder import HEADS, build_loss
 from .gfl_head import GFLHead
 

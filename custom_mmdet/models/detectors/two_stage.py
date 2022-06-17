@@ -31,14 +31,14 @@ class TwoStageDetector(BaseDetector):
                           'please use "init_cfg" instead')
             backbone.pretrained = pretrained
         
+        print("custom_mmdet\\models\\two_stage.py")
+        
         # build_backbone
         self.backbone = build_backbone(backbone)
-        print(f"{type(self.backbone)}")
         
         # build_neck : FPN
         if neck is not None:
             self.neck = build_neck(neck)
-        print(f"{type(self.neck)}")
         
         
         if rpn_head is not None:

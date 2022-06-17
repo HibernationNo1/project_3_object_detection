@@ -7,8 +7,8 @@ from mmcv.cnn import ConvModule
 from mmcv.ops import DeformConv2d
 from mmcv.runner import BaseModule
 
-from mmdet.core import multi_apply
-from mmdet.core.utils import filter_scores_and_topk
+from custom_mmdet.core import multi_apply
+from custom_mmdet.core.utils import filter_scores_and_topk
 from ..builder import HEADS
 from .anchor_free_head import AnchorFreeHead
 

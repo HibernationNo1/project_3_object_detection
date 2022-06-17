@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmdet.utils.util_random import ensure_rng
+from custom_mmdet.utils.util_random import ensure_rng
 
 
 def random_boxes(num=1, scale=1, rng=None):

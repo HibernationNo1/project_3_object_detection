@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from mmcv.runner import force_fp32
 
-from mmdet.core import (anchor_inside_flags, images_to_levels, multi_apply,
+from custom_mmdet.core import (anchor_inside_flags, images_to_levels, multi_apply,
                         unmap)
 from ..builder import HEADS
 from ..losses.accuracy import accuracy

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from mmcv.runner import ModuleList
 
-from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
+from custom_mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
                         build_sampler, merge_aug_bboxes, merge_aug_masks,
                         multiclass_nms)
 from ..builder import HEADS, build_head, build_roi_extractor

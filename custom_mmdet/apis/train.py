@@ -147,6 +147,7 @@ def train_detector(model,
         **train_dataloader_default_args,
         **cfg.data.get('train_dataloader', {})
     }
+         
     data_loaders = [build_dataloader(ds, **train_loader_cfg) for ds in dataset]
 
     # put model on gpus

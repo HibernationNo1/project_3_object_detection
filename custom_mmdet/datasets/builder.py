@@ -181,8 +181,7 @@ def build_dataloader(dataset,
             sampler = GroupSampler(dataset,
                                    samples_per_gpu) if shuffle else None
         batch_sampler = None
-        
-
+    
     init_fn = partial(
         worker_init_fn, num_workers=num_workers, rank=rank,
         seed=seed) if seed is not None else None

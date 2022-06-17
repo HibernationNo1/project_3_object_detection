@@ -8,7 +8,7 @@ from mmcv.cnn import ConvModule, Scale
 from mmcv.ops import DeformConv2d
 from mmcv.runner import force_fp32
 
-from mmdet.core import (MlvlPointGenerator, bbox_overlaps, build_assigner,
+from custom_mmdet.core import (MlvlPointGenerator, bbox_overlaps, build_assigner,
                         build_prior_generator, build_sampler, multi_apply,
                         reduce_mean)
 from ..builder import HEADS, build_loss

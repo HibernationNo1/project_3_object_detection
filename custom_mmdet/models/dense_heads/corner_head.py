@@ -8,7 +8,7 @@ from mmcv.cnn import ConvModule, bias_init_with_prob
 from mmcv.ops import CornerPool, batched_nms
 from mmcv.runner import BaseModule, force_fp32
 
-from mmdet.core import multi_apply
+from custom_mmdet.core import multi_apply
 from ..builder import HEADS, build_loss
 from ..utils import gaussian_radius, gen_gaussian_target
 from ..utils.gaussian_target import (gather_feat, get_local_maximum,

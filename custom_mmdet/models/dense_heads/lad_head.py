@@ -2,7 +2,7 @@
 import torch
 from mmcv.runner import force_fp32
 
-from mmdet.core import bbox_overlaps, multi_apply
+from custom_mmdet.core import bbox_overlaps, multi_apply
 from ..builder import HEADS
 from .paa_head import PAAHead, levels_to_images
 

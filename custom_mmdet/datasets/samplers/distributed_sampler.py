@@ -4,8 +4,8 @@ import math
 import torch
 from torch.utils.data import DistributedSampler as _DistributedSampler
 
-from mmdet.core.utils import sync_random_seed
-from mmdet.utils import get_device
+from custom_mmdet.core.utils import sync_random_seed
+from custom_mmdet.utils import get_device
 
 
 class DistributedSampler(_DistributedSampler):

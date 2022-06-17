@@ -6,8 +6,8 @@ import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, ModuleList, force_fp32
 
-from mmdet.core import build_sampler, fast_nms, images_to_levels, multi_apply
-from mmdet.core.utils import select_single_mlvl
+from custom_mmdet.core import build_sampler, fast_nms, images_to_levels, multi_apply
+from custom_mmdet.core.utils import select_single_mlvl
 from ..builder import HEADS, build_loss
 from .anchor_head import AnchorHead
 

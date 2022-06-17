@@ -6,7 +6,7 @@ from mmcv.cnn.utils.weight_init import constant_init
 from mmcv.ops import batched_nms
 from mmcv.runner import BaseModule, force_fp32
 
-from mmdet.core.utils import filter_scores_and_topk, select_single_mlvl
+from custom_mmdet.core.utils import filter_scores_and_topk, select_single_mlvl
 
 
 class BaseDenseHead(BaseModule, metaclass=ABCMeta):
