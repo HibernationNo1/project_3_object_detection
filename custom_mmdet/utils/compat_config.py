@@ -91,46 +91,48 @@ def compat_loader_args(cfg):
         cfg.data.val_dataloader['workers_per_gpu'] = workers_per_gpu
         cfg.data.test_dataloader['workers_per_gpu'] = workers_per_gpu
 
-    # special process for val_dataloader
-    if 'samples_per_gpu' in cfg.data.val:
-        # keep default value of `sample_per_gpu` is 1
-        assert 'samples_per_gpu' not in \
-               cfg.data.val_dataloader, ('`samples_per_gpu` are set '
-                                         'in `data.val` field and ` '
-                                         'data.val_dataloader` at '
-                                         'the same time. '
-                                         'Please only set it in '
-                                         '`data.val_dataloader`. ')
-        cfg.data.val_dataloader['samples_per_gpu'] = \
-            cfg.data.val.pop('samples_per_gpu')
-    # special process for val_dataloader
-
-    # in case the test dataset is concatenated
-    if isinstance(cfg.data.test, dict): # 해당됨
-        if 'samples_per_gpu' in cfg.data.test:
+    if cfg.mode == 'train':
+        # special process for val_dataloader
+        if 'samples_per_gpu' in cfg.data.val:
+            # keep default value of `sample_per_gpu` is 1
             assert 'samples_per_gpu' not in \
-                   cfg.data.test_dataloader, ('`samples_per_gpu` are set '
-                                              'in `data.test` field and ` '
-                                              'data.test_dataloader` '
-                                              'at the same time. '
-                                              'Please only set it in '
-                                              '`data.test_dataloader`. ')
-
-            cfg.data.test_dataloader['samples_per_gpu'] = \
-                cfg.data.test.pop('samples_per_gpu')
-
-    elif isinstance(cfg.data.test, list):
-        for ds_cfg in cfg.data.test:
-            if 'samples_per_gpu' in ds_cfg:
+                cfg.data.val_dataloader, ('`samples_per_gpu` are set '
+                                            'in `data.val` field and ` '
+                                            'data.val_dataloader` at '
+                                            'the same time. '
+                                            'Please only set it in '
+                                            '`data.val_dataloader`. ')
+            cfg.data.val_dataloader['samples_per_gpu'] = \
+                cfg.data.val.pop('samples_per_gpu')
+        # special process for val_dataloader
+    elif cfg.mode == 'test':
+    
+        # in case the test dataset is concatenated
+        if isinstance(cfg.data.test, dict): # 해당됨
+            if 'samples_per_gpu' in cfg.data.test:
                 assert 'samples_per_gpu' not in \
-                       cfg.data.test_dataloader, ('`samples_per_gpu` are set '
-                                                  'in `data.test` field and ` '
-                                                  'data.test_dataloader` at'
-                                                  ' the same time. '
-                                                  'Please only set it in '
-                                                  '`data.test_dataloader`. ')
-        samples_per_gpu = max(
-            [ds_cfg.pop('samples_per_gpu', 1) for ds_cfg in cfg.data.test])
-        cfg.data.test_dataloader['samples_per_gpu'] = samples_per_gpu
+                    cfg.data.test_dataloader, ('`samples_per_gpu` are set '
+                                                'in `data.test` field and ` '
+                                                'data.test_dataloader` '
+                                                'at the same time. '
+                                                'Please only set it in '
+                                                '`data.test_dataloader`. ')
+
+                cfg.data.test_dataloader['samples_per_gpu'] = \
+                    cfg.data.test.pop('samples_per_gpu')
+
+        elif isinstance(cfg.data.test, list):
+            for ds_cfg in cfg.data.test:
+                if 'samples_per_gpu' in ds_cfg:
+                    assert 'samples_per_gpu' not in \
+                        cfg.data.test_dataloader, ('`samples_per_gpu` are set '
+                                                    'in `data.test` field and ` '
+                                                    'data.test_dataloader` at'
+                                                    ' the same time. '
+                                                    'Please only set it in '
+                                                    '`data.test_dataloader`. ')
+            samples_per_gpu = max(
+                [ds_cfg.pop('samples_per_gpu', 1) for ds_cfg in cfg.data.test])
+            cfg.data.test_dataloader['samples_per_gpu'] = samples_per_gpu
 
     return cfg
