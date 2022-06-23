@@ -1,5 +1,5 @@
 # dataset settings
- # TODO : 이걸로 바꾸기 'CustomDataset'  
+mode = "train"
 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
@@ -13,7 +13,8 @@ train_pipeline = [
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']),
 ]
-test_pipeline = [
+
+val_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
@@ -30,30 +31,25 @@ test_pipeline = [
 ]
 
 
-dataset_type = 'CustomDataset'        # TODO Customdataset으로 dataset>coco.py를 수정
+dataset_type = 'CustomDataset'        
 
 data_root = 'data'
 data_category = 'paprika'
 dataset_json = 'dataset.json'
 
 data = dict(
-    samples_per_gpu=1,  # batch_size
-    workers_per_gpu=1, # 1? 2? ???
+    samples_per_gpu=2,  # batch_size
+    workers_per_gpu=1, 
     train=dict(
         type=dataset_type,
-        ann_file=data_root + "/" + data_category + "/" + dataset_json,    
-        img_prefix=data_root  + "/" + data_category + "/",              
+        ann_file=data_root + "/train/" + data_category + "/" + dataset_json,    
+        img_prefix=data_root  + "/train/" + data_category + "/",              
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + "/" + data_category + "/" + dataset_json,     
-        img_prefix=data_root  + "/" + data_category + "/",               
-        pipeline=test_pipeline),
-    test=dict(
-        type=dataset_type,
-        ann_file=data_root + "/" + data_category + "/" + dataset_json,     
-        img_prefix=data_root  + "/" + data_category + "/",              
-        pipeline=test_pipeline))
+        ann_file=data_root + "/val/" + data_category + "/" + dataset_json,      # TODO
+        img_prefix=data_root  + "/val/" + data_category + "/",               
+        pipeline=val_pipeline))
 evaluation = dict(metric=['bbox', 'segm'])
 
 
