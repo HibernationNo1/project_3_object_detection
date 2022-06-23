@@ -194,8 +194,8 @@ class labelme_custom():
                         id_count +=1
                         
                         
-                    else : pass     # TODO : segmentation이 아닌 dataset을 다룰 때 기능 추가
-
+                    else : continue     # TODO : segmentation이 아닌 dataset을 다룰 때 기능 추가
+ 
                     self.dataset['annotations'].append(tmp_annotations_dict)
 
 
