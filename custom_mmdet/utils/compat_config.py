@@ -15,7 +15,8 @@ def compat_cfg(cfg):
     cfg = copy.deepcopy(cfg)
     cfg = compat_imgs_per_gpu(cfg)  # 해당없음. TODO 적용해보기
     cfg = compat_loader_args(cfg)   # TODO 해당되는 사항 이해하기
-    cfg = compat_runner_args(cfg)   # runner(epoch)에 관한 config확인
+    if cfg.mode == "train":
+        cfg = compat_runner_args(cfg)   # runner(epoch)에 관한 config확인
     return cfg
 
 
