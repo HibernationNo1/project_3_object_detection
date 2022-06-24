@@ -1,4 +1,4 @@
-#-- python 3.8 --
+#-*- coding: utf-8 -*- 
 
 opencv-python
 Pillow
@@ -12,11 +12,12 @@ pycocotools
 
 
 ### cudatoolkit, torch
-# conda create -n mask python=3.8 pytorch==1.10.0 cudatoolkit=10.2 torchvision -c pytorch -y
+# conda create -n mmdet python=3.8 pytorch torchvision cudatoolkit=11.3 -c pytorch -c conda-forge -y      
 # conda activate mask
 
 ## install MMDetection manually
-# pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu102/torch1.10.0/index.html
+# pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.11.0/index.html
 # pip install mmdet         # custom mmdet로 대체했음       
+
 
 # pip install -r requirements.txt
