@@ -77,9 +77,10 @@ class CustomDataset(Dataset):
         self.test_mode = test_mode
         self.filter_empty_gt = filter_empty_gt
         self.file_client = mmcv.FileClient(**file_client_args)
-        self.CLASSES = self.get_classes(img_prefix, classes)
+        self.data_ann = mmcv.load(ann_file) 
+        self.CLASSES = self.get_classes(self.data_ann, classes)
         self.PALETTE = self.get_palette()
-    
+ 
         # print(f"self.ann_file : {self.ann_file}")
         # print(f"self.data_root : {self.data_root}")
         # print(f"self.img_prefix : {self.img_prefix}")
@@ -432,7 +433,7 @@ class CustomDataset(Dataset):
         return self.pipeline(results)
 
     @classmethod
-    def get_classes(cls, img_prefix, classes=None):
+    def get_classes(cls, data_ann, classes=None):
         """Get class names of current dataset.
 
         Args:
@@ -445,18 +446,10 @@ class CustomDataset(Dataset):
         Returns:
             tuple[str] or list[str]: Names of categories of the dataset.
         """
-        if classes is None:
-            classes_json = None
-            file_list = os.listdir(img_prefix) 
-            for file_name in file_list:
-         
-                if file_name.split("_")[-1] == 'classes.json':
-                    classes_json =osp.join(img_prefix, file_name)
+        if classes is None:   
+            classes = data_ann['classes']
+            return classes             
             
-            if classes_json is not None:
-                classes = mmcv.load(classes_json)   
-                return classes             
-            else:   return cls.CLASSES
 
         if isinstance(classes, str):
             # take it as a file path
