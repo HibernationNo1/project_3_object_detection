@@ -34,7 +34,8 @@ class labelme_custom():
         
         self.dataset = dict(info = {}, 
                             licenses = [],
-                            images = [], annotations = [], categories = [])
+                            images = [], annotations = [], categories = [],
+                            classes = None)
         self.object_names = []
         
         self.dataset_dir_path = None
@@ -108,9 +109,6 @@ class labelme_custom():
         save_dataset_path = os.path.join(self.dataset_dir_path, self.cfg.json.file_name)
         json.dump(self.dataset, open(save_dataset_path, "w"), indent=4, cls=NpEncoder)                      # save dataset
         
-        save_classes_path = os.path.join(self.dataset_dir_path, self.deta_ann + "_classes.json")
-        json.dump(self.object_names, open(save_classes_path, "w"), indent=4, cls=NpEncoder)     # save classes    
-        
         print("Done!")
     
     
@@ -151,6 +149,8 @@ class labelme_custom():
             tmp_categories_dict['id'] = self.object_names.index(object_name)            # int
             tmp_categories_dict['name'] = object_name                                    # str
             self.dataset['categories'].append(tmp_categories_dict)
+        
+        self.dataset['classes'] = self.object_names
         
            
     def get_annotations(self, labelme_json_list):
