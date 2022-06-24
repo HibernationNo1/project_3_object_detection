@@ -15,8 +15,7 @@ class COCO(_COCO):
     the same interface as LVIS class.
     """
 
-    def __init__(self, annotation_file=None):
-        print("             2-1-1. dataset api_wrappers coco_api.py COCO init") 
+    def __init__(self, annotation_file=None): 
         
         if getattr(pycocotools, '__version__', '0') >= '12.0.2':
             warnings.warn(
