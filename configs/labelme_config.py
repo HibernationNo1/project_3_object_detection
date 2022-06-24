@@ -1,6 +1,7 @@
 from __future__ import annotations
 import time                      
 
+mode = "labelme"
 
 dir_info = dict(
     labelme_dir = "labelme",

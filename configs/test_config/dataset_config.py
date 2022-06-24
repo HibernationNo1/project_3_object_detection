@@ -31,7 +31,7 @@ data = dict(
     workers_per_gpu=1, 
     test=dict(
         type=dataset_type,
-        ann_file=data_root + "/test/" + data_category + "/" + dataset_json,     # test에도 ann_file이 필요한가? 
-        img_prefix=data_root  + "/test/" + data_category + "/",              
+        ann_file= None,                                                          # work_dir/model_dir/dataset.json
+        img_prefix=data_root  + "/test/" + data_category + "/",                 # test할 image의 dir        
         pipeline=test_pipeline))
 evaluation = dict(metric=['bbox', 'segm'])
