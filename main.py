@@ -11,52 +11,11 @@ assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
 # python main.py --mode labelme --cfg configs/labelme_config.py --ann paprika
 # python main.py --mode train --cfg configs/train_config.py --cat paprika --epo 40
-# python main.py --mode test --cfg configs/test_config.py --model_dir 2022-06-22-1457_paprika --cat paprika --epo 40
+# python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-22-1457_paprika --cat paprika --epo 40
 
-def set_config(args):
-    cfg = Config.fromfile(args.cfg)
-    
-    assert isinstance(cfg, mmcv.Config), \
-        f'cfg got wrong type: {type(cfg)}, expected mmcv.Config'
-        
-    assert cfg.mode == args.mode, f"commend mode is '{args.mode}', but you call '{cfg.mode}' config."
-    
-    if args.mode == 'labelme':
-        if args.json_name is not None: 
-            if os.path.splitext(args.json_name)[1] !=".json":
-                raise IOError('Only .json type are supoorted now!')
-            cfg.json.file_name = args.json_name
-            
-        if args.ann not in cfg.json.valid_categorys:
-            raise KeyError(f"{args.ann} is not valid category.")
-        else: cfg.json.category = args.ann
-        
-    elif args.mode == 'train':
-        # set dataset path
-        
-        if args.root is not None:       cfg.data_root = args.root
-        cfg.data_category = args.cat
-        if args.train_json is not None:       cfg.dataset_json = args.train_json
-        cfg.data.train.ann_file = cfg.data_root + "/train/" + cfg.data_category + "/" + cfg.dataset_json
-        cfg.data.train.img_prefix= cfg.data_root + "/train/" + cfg.data_category + '/'
-        
-        cfg.data.val.ann_file, cfg.data.val.img_prefix = cfg.data.train.ann_file, cfg.data.train.img_prefix
-        
-        # set work_dir path
-        if args.work_dir is not None:   cfg.work_dir = args.work_dir
-        if args.epo is not None: cfg.runner.max_epochs = args.epo        
-        
-        # TODO : add val
-    
-    elif args.mode == 'test':
-        if args.root is not None:       cfg.data_root = args.root
-        cfg.data_category = args.cat
-        cfg.data.test.img_prefix = cfg.data_root + "/test/" + cfg.data_category + '/' 
-        cfg.data.test.ann_file  = os.path.join(os.path.join(os.path.abspath(cfg.work_dir), args.model_dir), cfg.dataset_json ) 
-       
-        if args.work_dir is not None:   cfg.work_dir = args.work_dir
-    
-    return cfg
+
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Change structure from comments to custom dataset in json file format.")
@@ -79,7 +38,18 @@ def parse_args():
         
     # mode : test
     parser.add_argument('--model_dir', help='directory name containing trained model in .pth format  \n required')
-    
+    parser.add_argument(
+        '--show-score-thr',
+        type=float,
+        default=0.3,
+        help='score threshold (default: 0.3)')
+    parser.add_argument(
+        '--eval',
+        type=str,
+        nargs='+',
+        help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
+        ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC')
+     
     
     # mode train or test
     parser.add_argument('--work_dir', help= "name of working dir (save env, log text and config .py file)")
@@ -141,6 +111,53 @@ def parse_args():
     
     return args
 
+
+def set_config(args):
+    cfg = Config.fromfile(args.cfg)
+    
+    assert isinstance(cfg, mmcv.Config), \
+        f'cfg got wrong type: {type(cfg)}, expected mmcv.Config'
+            
+    if args.mode == 'labelme':
+        cfg.mode == "labelme"
+        
+        if args.json_name is not None: 
+            if os.path.splitext(args.json_name)[1] !=".json":
+                raise IOError('Only .json type are supoorted now!')
+            cfg.json.file_name = args.json_name
+            
+        if args.ann not in cfg.json.valid_categorys:
+            raise KeyError(f"{args.ann} is not valid category.")
+        else: cfg.json.category = args.ann
+        
+    elif args.mode == 'train':
+        cfg.mode == "train"
+        # set dataset path
+        if args.root is not None:       cfg.data_root = args.root
+        cfg.data_category = args.cat
+        if args.train_json is not None:       cfg.dataset_json = args.train_json
+        cfg.data.train.ann_file = cfg.data_root + "/train/" + cfg.data_category + "/" + cfg.dataset_json
+        cfg.data.train.img_prefix= cfg.data_root + "/train/" + cfg.data_category + '/'
+        
+        cfg.data.val.ann_file, cfg.data.val.img_prefix = cfg.data.train.ann_file, cfg.data.train.img_prefix
+        
+        # set work_dir path
+        if args.work_dir is not None:   cfg.work_dir = args.work_dir
+        if args.epo is not None: cfg.runner.max_epochs = args.epo        
+        
+        # TODO : add val
+    
+    elif args.mode == 'test':
+        cfg.mode == "test"
+        
+        if args.root is not None:       cfg.data_root = args.root
+        cfg.data_category = args.cat
+        cfg.data.test.img_prefix = cfg.data_root + "/test/" + cfg.data_category + '/' 
+        cfg.data.test.ann_file  = os.path.join(os.path.join(os.path.abspath(cfg.work_dir), args.model_dir), cfg.dataset_json ) 
+       
+        if args.work_dir is not None:   cfg.work_dir = args.work_dir
+    
+    return cfg
 
 
 if __name__ == "__main__":
