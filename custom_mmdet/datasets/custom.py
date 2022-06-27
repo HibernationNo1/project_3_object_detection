@@ -509,6 +509,7 @@ class CustomDataset(Dataset):
             assert len(metric) == 1
             metric = metric[0]
         allowed_metrics = ['mAP', 'recall']
+        
         if metric not in allowed_metrics:
             raise KeyError(f'metric {metric} is not supported')
         annotations = [self.get_ann_info(i) for i in range(len(self))]
