@@ -2,7 +2,7 @@ import os
 import time
 
 import mmcv
-from mmcv.runner import init_dist, get_dist_info, load_checkpoint
+from mmcv.runner import init_dist, get_dist_info, _load_checkpoint
 
 import torch
 import warnings
@@ -20,8 +20,8 @@ def test(cfg, args):
     print(f'Cuda is available: {torch.cuda.is_available()}')
     
     cfg = compat_cfg(cfg)
-    model_path, output_file_path, eval_file = check_set_dir_root(cfg, args)
-    
+    path_dict = check_set_dir_root(cfg, args)
+   
     # set multi-process settings
     # setup_multi_processes(cfg)
     
@@ -40,6 +40,7 @@ def test(cfg, args):
     else:
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
+
 
     test_dataloader_default_args = dict(
         samples_per_gpu=1, workers_per_gpu=2, dist=distributed, shuffle=False)
@@ -65,21 +66,59 @@ def test(cfg, args):
         
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
+    
     data_loader = build_dataloader(dataset, **test_loader_cfg)
     
     # build the model and load checkpoint
     cfg.model.train_cfg = None
-    model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # TODO 이거 뜯어고쳐서 model을 registry에서 꺼내 올 필요성이 있는지 확인할 것 
+    model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # just build model, why needed?
     
-    checkpoint = load_checkpoint(model, model_path, map_location='cpu')
+    # from mmcv.runner import load_checkpoint 
+    # checkpoint = load_checkpoint(model, model_path, map_location='cpu')
+    
+   
+    checkpoint = _load_checkpoint(path_dict['model_file'], map_location='cpu')
+   
+    # for i in range(len(checkpoint['optimizer']['state'])):      # len == 219
+    #     print(f"    checkpoint['optimizer']['state'][{i}]['step'] : {checkpoint['optimizer']['state'][i]['step']}")
+    #     print(f"    checkpoint['optimizer']['state'][{i}]['exp_avg'] : {checkpoint['optimizer']['state'][i]['exp_avg'].shape} \n")
+    
+    # for i in range(len(checkpoint['optimizer']['state'])):      # len == 219
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['lr']  : {checkpoint['optimizer']['param_groups'][i]['lr']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['betas']  : {checkpoint['optimizer']['param_groups'][i]['betas']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['eps']  : {checkpoint['optimizer']['param_groups'][i]['eps']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['weight_decay']  : {checkpoint['optimizer']['param_groups'][i]['weight_decay']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['amsgrad']  : {checkpoint['optimizer']['param_groups'][i]['amsgrad']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['maximize']  : {checkpoint['optimizer']['param_groups'][i]['maximize']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['initial_lr']  : {checkpoint['optimizer']['param_groups'][i]['initial_lr']}")
+    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['params']  : {checkpoint['optimizer']['param_groups'][i]['params']} \n")
+        
+    
+    # print(f" type(checkpoint['state_dict']) : {type(checkpoint['state_dict'])}")
+    # print(f"checkpoint['meta']['mmdet_version'] : {checkpoint['meta']['mmdet_version']}")
+    # print(f"checkpoint['meta']['CLASSES'] : {checkpoint['meta']['CLASSES']}")
+    
+    # print(f"checkpoint['meta']['env_infp'] : {checkpoint['meta']['env_info']}")
+    # print(f"checkpoint['meta']['config'] : {checkpoint['meta']['config']}")
+    
+    # print(f"checkpoint['meta']['seed'] : {checkpoint['meta']['seed']}")
+    # print(f"checkpoint['meta']['exp_name'] : {checkpoint['meta']['exp_name']}")
+    # print(f"checkpoint['meta']['epoch'] : {checkpoint['meta']['epoch']}")
+    # print(f"checkpoint['meta']['iter'] : {checkpoint['meta']['iter']}")
+    # print(f"checkpoint['meta']['mmcv_version'] : {checkpoint['meta']['mmcv_version']}")
+    # print(f"checkpoint['meta']['time'] : {checkpoint['meta']['time']}")
+    # print(f"checkpoint['meta']['hook_msgs'] : {checkpoint['meta']['hook_msgs']}")
+    
     if 'CLASSES' in checkpoint.get('meta', {}):
         model.CLASSES = checkpoint['meta']['CLASSES']
     else:
         model.CLASSES = dataset.CLASSES
 
+    
     if not distributed:
         model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
-        outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,
+
+        outputs = single_gpu_test(model, data_loader, True, path_dict['result_img_dir'],
                                   args.show_score_thr)
     else:
         model = build_ddp(
@@ -96,32 +135,36 @@ def test(cfg, args):
         
     rank, _ = get_dist_info()   
 
+    
     if rank == 0:
-        if args.out:
-            print(f'\nwriting results to {args.out}')
-            mmcv.dump(outputs, args.out)
-        kwargs = {} if args.eval_options is None else args.eval_options
-        if args.format_only:
-            dataset.format_results(outputs, **kwargs)
-        if args.eval:
-            eval_kwargs = cfg.get('evaluation', {}).copy()
-            # hard-code way to remove EvalHook args
-            for key in [
-                    'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
-                    'rule', 'dynamic_intervals'
-            ]:
-                eval_kwargs.pop(key, None)
-            eval_kwargs.update(dict(metric=args.eval, **kwargs))
-            metric = dataset.evaluate(outputs, **eval_kwargs)
-            print(metric)
-            metric_dict = dict(config=args.config, metric=metric)
-            if args.work_dir is not None and rank == 0:
-                mmcv.dump(metric_dict, eval_file)
+        print(f"\n writing results to {path_dict['pkl_file']}")
+        mmcv.dump(outputs, path_dict['pkl_file'])   
+            
+            
+        kwargs = {} 
+
+        # TODO 
+        # if args.eval:       # python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-22-1457_paprika --cat paprika --epo 40 --eval mAP
+        #     eval_kwargs = cfg.get('evaluation', {}).copy()
+        #     # hard-code way to remove EvalHook args
+        #     for key in [
+        #             'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
+        #             'rule', 'dynamic_intervals'
+        #     ]:
+        #         eval_kwargs.pop(key, None)
+        #     eval_kwargs.update(dict(metric=args.eval, **kwargs))
+        #     metric = dataset.evaluate(outputs, **eval_kwargs)
+        #     print(metric)
+        #     metric_dict = dict(config=args.config, metric=metric)
+        #     if path_dict['result_dir'] is not None and rank == 0:
+        #         mmcv.dump(metric_dict, path_dict['eval_file'])
         
 
 
-def check_set_dir_root(cfg, args):
 
+
+def check_set_dir_root(cfg, args):
+    path_dict = {}
     # check model path
     model_dir = os.path.join(cfg.work_dir, args.model_dir)
     assert os.path.isdir(model_dir), f"check model directory path : {model_dir}"
@@ -132,6 +175,7 @@ def check_set_dir_root(cfg, args):
     else:
         model_path = os.path.join(model_dir, "epoch_" + args.epo + ".pth")
     assert os.path.isfile(model_path), f"check model file path : {model_path}"
+    
     
     # check test dataset path
     category_dir = os.path.join(os.path.join(os.path.abspath(cfg.data_root),'test'), cfg.data_category)
@@ -148,12 +192,17 @@ def check_set_dir_root(cfg, args):
     result_images_dir = os.path.join(result_dir, cfg.show_dir)
     os.makedirs(result_images_dir, exist_ok=True)
    
-    output_file_path = os.path.join(result_dir, cfg.output)
+    pkl_path = os.path.join(result_dir, cfg.output)
     
     mmcv.mkdir_or_exist(os.path.abspath(cfg.work_dir))
     timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     eval_file = os.path.join(result_dir, f'eval_{timestamp}.json')
     
-    
-    return model_path, output_file_path, eval_file
+    path_dict['model_file'] = model_path
+    path_dict['result_dir'] = result_dir
+    path_dict['result_img_dir'] = result_images_dir
+    path_dict['pkl_file'] = pkl_path
+    path_dict['eval_file'] = eval_file
+      
+    return path_dict
     
