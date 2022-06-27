@@ -30,6 +30,21 @@ val_pipeline = [
         ])
 ]
 
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(type='Normalize', **img_norm_cfg),
+            dict(type='Pad', size_divisor=32),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img']),
+        ])
+]
 
 dataset_type = 'CustomDataset'        
 
@@ -49,7 +64,12 @@ data = dict(
         type=dataset_type,
         ann_file=data_root + "/val/" + data_category + "/" + dataset_json,      # TODO
         img_prefix=data_root  + "/val/" + data_category + "/",               
-        pipeline=val_pipeline))
+        pipeline=val_pipeline),
+    test=dict(
+        type=dataset_type,
+        ann_file= None,                                                          # work_dir/model_dir/dataset.json
+        img_prefix=data_root  + "/test/" + data_category + "/",                 # test할 image의 dir        
+        pipeline=test_pipeline))
 evaluation = dict(metric=['bbox', 'segm'])
 
 

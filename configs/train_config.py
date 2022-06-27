@@ -1,12 +1,17 @@
 _base_ = [
-    'train_config/mask_rcnn_r50_fpn.py',
-    'train_config/dataset_config.py',
-    'train_config/schedule_1x.py',
-    'train_config/default_runtime.py'
+    '_base_/mask_rcnn_r50_fpn.py',
+    '_base_/dataset_config.py',
+    '_base_/schedule_1x.py',
+    '_base_/default_runtime.py'
 ]
 
 work_dir = 'work_dir'
 mode = 'train'
+
+
+output = 'result.pkl'
+show_dir = 'result_images'
+
 
 pretrained = 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth'  # noqa
 model = dict(
@@ -45,3 +50,8 @@ optimizer = dict(
         }))
 lr_config = dict(warmup_iters=1000, step=[8, 11])
 runner = dict(max_epochs=3)
+
+
+
+
+
