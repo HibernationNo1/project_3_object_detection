@@ -2,8 +2,10 @@
 
 import os
 from posixpath import split
-import time
+import time, json
 import warnings
+
+from labelme import NpEncoder
 
 import mmcv
 
@@ -68,13 +70,12 @@ def train(cfg, args):
     logger, meta, timestamp = get_logger_set_meta(work_dir, cfg, args, distributed)
     cfg.work_dir = work_dir
     
-    
     # build model
     model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
-    
+
     # TODO 아래 경로로 가서 모델 뜯어고쳐보기
     # self._module_dict가 언제 할당되는지 확인해보기.
     # print(f"            train.py type(model) : {type(model)}")      # <class 'mmdet.models.detectors.mask_rcnn.MaskRCNN'>
@@ -89,15 +90,13 @@ def train(cfg, args):
     # print(f"            train.py type(datasets) : {type(datasets[0])}")      # <class 'mmdet.datasets.custom.CocoDataset'>
     
     if cfg.checkpoint_config is not None:   
-        
         # save mmdet version, config file content and class names in
         # checkpoints as meta data
         cfg.checkpoint_config.meta = dict(
             mmdet_version=__version__ + get_git_hash()[:7],
             CLASSES=datasets[0].CLASSES)
-    # add an attribute for visualization convenience
-    model.CLASSES = datasets[0].CLASSES
-
+ 
+    json.dump(datasets[0], open(os.path.join(work_dir, "dataset.json"), "w"), indent=4, cls=NpEncoder)        # save dataset file for test
     
     # train_detector
     train_detector(
@@ -165,8 +164,8 @@ def set_dir_path(cfg):
 
 
 def check_data_root(cfg):
-    category_dir = os.path.join(os.path.abspath(cfg.data_root), cfg.data_category)
-    assert os.path.isdir(category_dir), "check category dir path"
+    category_dir = os.path.join(os.path.join(os.path.abspath(cfg.data_root),'train'), cfg.data_category)
+    assert os.path.isdir(category_dir), f"check category dir path : {category_dir}"
     
     dataset_json = os.path.join(category_dir, cfg.dataset_json)
-    assert os.path.isfile(dataset_json), "check dataset json file path"
+    assert os.path.isfile(dataset_json), f"check dataset json file path : {dataset_json}"
