@@ -63,12 +63,18 @@ def train(cfg, args):
     
     check_data_root(cfg)   
     work_dir = set_dir_path(cfg)
-    
+ 
     cfg.dump(os.path.join(work_dir, os.path.basename(args.cfg)))        # save config file(.py)
+    
+    with open(cfg.data.train.ann_file, "r") as fp:
+        data_ann_file = json.load(fp)   
+    json.dump(data_ann_file, open(os.path.join(work_dir, "dataset.json"), "w"), indent=4, cls=NpEncoder)        # save dataset file for test
     
     # create logger
     logger, meta, timestamp = get_logger_set_meta(work_dir, cfg, args, distributed)
     cfg.work_dir = work_dir
+    
+ 
     
     # build model
     model = build_detector(
@@ -95,8 +101,6 @@ def train(cfg, args):
         cfg.checkpoint_config.meta = dict(
             mmdet_version=__version__ + get_git_hash()[:7],
             CLASSES=datasets[0].CLASSES)
- 
-    json.dump(datasets[0], open(os.path.join(work_dir, "dataset.json"), "w"), indent=4, cls=NpEncoder)        # save dataset file for test
     
     # train_detector
     train_detector(
