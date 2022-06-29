@@ -214,6 +214,8 @@ class Resize:
 
     def _resize_img(self, results):
         """Resize images with ``results['scale']``."""
+
+        
         for key in results.get('img_fields', ['img']):
             if self.keep_ratio:
                 img, scale_factor = mmcv.imrescale(
@@ -294,8 +296,12 @@ class Resize:
                 'keep_ratio' keys are added into result dict.
         """
 
+        
+        
+        
+        
         if 'scale' not in results:
-            if 'scale_factor' in results:
+            if 'scale_factor' in results:                
                 img_shape = results['img'].shape[:2]
                 scale_factor = results['scale_factor']
                 assert isinstance(scale_factor, float)

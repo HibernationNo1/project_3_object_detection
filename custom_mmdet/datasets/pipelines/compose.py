@@ -38,11 +38,13 @@ class Compose:
         Returns:
            dict: Transformed data.
         """
-
+       
         for t in self.transforms:
             data = t(data)
+                
             if data is None:
                 return None
+
         return data
 
     def __repr__(self):

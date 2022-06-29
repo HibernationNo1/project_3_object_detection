@@ -51,6 +51,7 @@ def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
             warnings.warn('Class names are not saved in the checkpoint\'s '
                           'meta data, use COCO classes by default.')
             model.CLASSES = get_classes('coco')
+            
     model.cfg = config  # save the config in the model for convenience
     model.to(device)
     model.eval()
@@ -108,7 +109,7 @@ def inference_detector(model, imgs):
     else:
         imgs = [imgs]
         is_batch = False
-
+        
     cfg = model.cfg
     device = next(model.parameters()).device  # model device
 
@@ -130,6 +131,7 @@ def inference_detector(model, imgs):
             # add information into dict
             data = dict(img_info=dict(filename=img), img_prefix=None)
         # build the data pipeline
+        
         data = test_pipeline(data)
         datas.append(data)
 
@@ -147,6 +149,7 @@ def inference_detector(model, imgs):
             assert not isinstance(
                 m, RoIPool
             ), 'CPU inference with RoIPool is not supported currently.'
+
 
     # forward the model
     with torch.no_grad():

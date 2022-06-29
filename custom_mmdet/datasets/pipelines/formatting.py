@@ -322,6 +322,7 @@ class Collect:
                             'flip_direction', 'img_norm_cfg')):
         self.keys = keys
         self.meta_keys = meta_keys
+    
 
     def __call__(self, results):
         """Call function to collect keys in results. The keys in ``meta_keys``
@@ -336,12 +337,15 @@ class Collect:
                 - keys in``self.keys``
                 - ``img_metas``
         """
-
+        
+             
         data = {}
         img_meta = {}
         for key in self.meta_keys:
             img_meta[key] = results[key]
+        
         data['img_metas'] = DC(img_meta, cpu_only=True)
+        
         for key in self.keys:
             data[key] = results[key]
         return data

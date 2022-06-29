@@ -56,8 +56,8 @@ class LoadImageFromFile:
         """
 
         if self.file_client is None:
-            self.file_client = mmcv.FileClient(**self.file_client_args)
-
+            self.file_client = mmcv.FileClient(**self.file_client_args)       
+        
         if results['img_prefix'] is not None:
             filename = osp.join(results['img_prefix'],
                                 results['img_info']['filename'])
@@ -76,6 +76,8 @@ class LoadImageFromFile:
         results['img_shape'] = img.shape
         results['ori_shape'] = img.shape
         results['img_fields'] = ['img']
+       
+            
         return results
 
     def __repr__(self):

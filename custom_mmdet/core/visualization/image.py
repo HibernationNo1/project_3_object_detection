@@ -248,7 +248,7 @@ def imshow_det_bboxes(img,
 
     Returns:
         ndarray: The image with bboxes drawn on it.
-    """
+    """    
     assert bboxes is None or bboxes.ndim == 2, \
         f' bboxes ndim should be 2, but its ndim is {bboxes.ndim}.'
     assert labels.ndim == 1, \

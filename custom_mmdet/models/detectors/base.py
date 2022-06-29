@@ -137,6 +137,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             for img_id in range(batch_size):
                 img_meta[img_id]['batch_input_shape'] = tuple(img.size()[-2:])
 
+        
         if num_augs == 1:
             # proposals (List[List[Tensor]]): the outer list indicates
             # test-time augs (multiscale, flip, etc.) and the inner list
@@ -145,6 +146,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             # proposals.
             if 'proposals' in kwargs:
                 kwargs['proposals'] = kwargs['proposals'][0]
+            
             return self.simple_test(imgs[0], img_metas[0], **kwargs)
         else:
             assert imgs[0].size(0) == 1, 'aug test does not support ' \
@@ -165,6 +167,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
         should be double nested (i.e.  List[Tensor], List[List[dict]]), with
         the outer list indicating test time augmentations.
         """
+        
         if torch.onnx.is_in_onnx_export():
             assert len(img_metas) == 1
             return self.onnx_export(img[0], img_metas[0])
@@ -310,6 +313,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
         Returns:
             img (Tensor): Only if not `show` or `out_file`
         """
+        
         img = mmcv.imread(img)
         img = img.copy()
         if isinstance(result, tuple):
