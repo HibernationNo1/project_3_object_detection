@@ -1,8 +1,13 @@
 import os
 import time
+import glob
+import cv2
+from tqdm import tqdm 
+import random
 
 import mmcv
-from mmcv.runner import init_dist, get_dist_info, _load_checkpoint
+# from mmcv.runner import init_dist, get_dist_info, _load_checkpoint
+from mmcv.runner import init_dist, get_dist_info, load_checkpoint
 
 import torch
 import warnings
@@ -12,6 +17,8 @@ from custom_mmdet.models import build_detector
 from custom_mmdet.utils import compat_cfg, setup_multi_processes, get_device, build_ddp, build_dp
 from custom_mmdet.datasets import replace_ImageToTensor, build_dataloader, build_dataset 
                                                
+from custom_mmdet.apis import init_detector, inference_detector
+from custom_mmdet.core import encode_mask_results
 
 
 def test(cfg, args):
@@ -59,82 +66,118 @@ def test(cfg, args):
             for ds_cfg in cfg.data.test:
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
 
-    test_loader_cfg = {
-        **test_dataloader_default_args,
-        **cfg.data.get('test_dataloader', {})
-    }
-        
-    # build the dataloader
-    dataset = build_dataset(cfg.data.test)
     
-    data_loader = build_dataloader(dataset, **test_loader_cfg)
     
-    # build the model and load checkpoint
+    
+
+    
+    batch_size = 4
+    imgs_path = glob.glob(os.path.join(path_dict['test_images_dir'], "*.jpg"))
+    batch_imgs = [imgs_path[x:x + batch_size] for x in range(0, len(imgs_path), batch_size)]
+    
     cfg.model.train_cfg = None
-    model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # just build model, why needed?
+    # model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # just build model, why needed?
     
-    # from mmcv.runner import load_checkpoint 
-    # checkpoint = load_checkpoint(model, model_path, map_location='cpu')
-    
-   
-    checkpoint = _load_checkpoint(path_dict['model_file'], map_location='cpu')
-   
-    # for i in range(len(checkpoint['optimizer']['state'])):      # len == 219
-    #     print(f"    checkpoint['optimizer']['state'][{i}]['step'] : {checkpoint['optimizer']['state'][i]['step']}")
-    #     print(f"    checkpoint['optimizer']['state'][{i}]['exp_avg'] : {checkpoint['optimizer']['state'][i]['exp_avg'].shape} \n")
-    
-    # for i in range(len(checkpoint['optimizer']['state'])):      # len == 219
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['lr']  : {checkpoint['optimizer']['param_groups'][i]['lr']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['betas']  : {checkpoint['optimizer']['param_groups'][i]['betas']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['eps']  : {checkpoint['optimizer']['param_groups'][i]['eps']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['weight_decay']  : {checkpoint['optimizer']['param_groups'][i]['weight_decay']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['amsgrad']  : {checkpoint['optimizer']['param_groups'][i]['amsgrad']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['maximize']  : {checkpoint['optimizer']['param_groups'][i]['maximize']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['initial_lr']  : {checkpoint['optimizer']['param_groups'][i]['initial_lr']}")
-    #     print(f"     checkpoint['optimizer']['param_groups'][{i}]['params']  : {checkpoint['optimizer']['param_groups'][i]['params']} \n")
-        
-    
-    # print(f" type(checkpoint['state_dict']) : {type(checkpoint['state_dict'])}")
-    # print(f"checkpoint['meta']['mmdet_version'] : {checkpoint['meta']['mmdet_version']}")
-    # print(f"checkpoint['meta']['CLASSES'] : {checkpoint['meta']['CLASSES']}")
-    
-    # print(f"checkpoint['meta']['env_infp'] : {checkpoint['meta']['env_info']}")
-    # print(f"checkpoint['meta']['config'] : {checkpoint['meta']['config']}")
-    
-    # print(f"checkpoint['meta']['seed'] : {checkpoint['meta']['seed']}")
-    # print(f"checkpoint['meta']['exp_name'] : {checkpoint['meta']['exp_name']}")
-    # print(f"checkpoint['meta']['epoch'] : {checkpoint['meta']['epoch']}")
-    # print(f"checkpoint['meta']['iter'] : {checkpoint['meta']['iter']}")
-    # print(f"checkpoint['meta']['mmcv_version'] : {checkpoint['meta']['mmcv_version']}")
-    # print(f"checkpoint['meta']['time'] : {checkpoint['meta']['time']}")
-    # print(f"checkpoint['meta']['hook_msgs'] : {checkpoint['meta']['hook_msgs']}")
-    
-    if 'CLASSES' in checkpoint.get('meta', {}):
-        model.CLASSES = checkpoint['meta']['CLASSES']
-    else:
-        model.CLASSES = dataset.CLASSES
+    device = 'cuda:0'
+    model = init_detector(cfg, path_dict['model_file'], device = device)
 
-    
+    outputs = []
     if not distributed:
+        codel_config = model.cfg  
         model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
+        model.cfg = codel_config
 
-        outputs = single_gpu_test(model, data_loader, True, path_dict['result_img_dir'],
-                                  args.show_score_thr)
-    else:
-        model = build_ddp(
-            model,
-            cfg.device,
-            device_ids=[int(os.environ['LOCAL_RANK'])],
-            broadcast_buffers=False)
-        outputs = multi_gpu_test(model, data_loader, args.tmpdir,
-                                 args.gpu_collect)
+        for imgs_path in tqdm(batch_imgs):   
+            with torch.no_grad():
+                results = inference_detector(model, imgs_path)
 
-
-
+            out_files = []
+            for img_path in imgs_path:
+                file_name = os.path.basename(img_path)
+                out_file = os.path.join(path_dict['result_img_dir'], file_name)
+                out_files.append(out_file)
+            
+            for img_path, out_file, result in zip(imgs_path, out_files, results):
+                img = cv2.imread(img_path)      
     
+                model.module.show_result(
+                        img, 
+                        result,
+                        bbox_color= (0, 255, 255),
+                        text_color= (255, 255, 255),
+                        mask_color= 'random',
+                        show=True,
+                        out_file=out_file,
+                        score_thr=args.show_score_thr)
+                      
+            # encode mask results
+            if isinstance(result[0], tuple):
+                results = [(bbox_results, encode_mask_results(mask_results))
+                        for bbox_results, mask_results in results]
+            # This logic is only used in panoptic segmentation test.
+            elif isinstance(results[0], dict) and 'ins_results' in results[0]:
+                for j in range(len(results)):
+                    bbox_results, mask_results = results[j]['ins_results']
+                    results[j]['ins_results'] = (bbox_results,
+                                                encode_mask_results(mask_results))     
         
-    rank, _ = get_dist_info()   
+            outputs.extend(results)
+    else:   # TODO
+        # model = build_ddp(
+        #     model,
+        #     cfg.device,
+        #     device_ids=[int(os.environ['LOCAL_RANK'])],
+        #     broadcast_buffers=False)
+        # outputs = multi_gpu_test(model, data_loader, args.tmpdir,
+        #                          args.gpu_collect)
+        pass
+        
+    
+    # # -------------
+    # test_loader_cfg = {
+    #     **test_dataloader_default_args,
+    #     **cfg.data.get('test_dataloader', {})
+    # }
+        
+    # # build the dataloader
+    # dataset = build_dataset(cfg.data.test)
+    # data_loader = build_dataloader(dataset, **test_loader_cfg)
+    
+    
+    # # build the model and load checkpoint
+    # cfg.model.train_cfg = None
+    # model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # just build model, why needed?
+    
+    # # from mmcv.runner import load_checkpoint 
+    # # checkpoint = load_checkpoint(model, model_path, map_location='cpu')
+    
+    # checkpoint = load_checkpoint(model, path_dict['model_file'], map_location='cpu')
+    # # checkpoint = _load_checkpoint(path_dict['model_file'], map_location='cpu')
+   
+    
+    # if 'CLASSES' in checkpoint.get('meta', {}):
+    #     model.CLASSES = checkpoint['meta']['CLASSES']
+    # else:
+    #     model.CLASSES = dataset.CLASSES
 
+    # if not distributed:
+    #     model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
+   
+    #     outputs = single_gpu_test(model, data_loader, 
+    #                               out_dir = path_dict['result_img_dir'],
+    #                               img_dir = path_dict['test_images_dir'],
+    #                               show_score_thr = args.show_score_thr)
+    # else:   # TODO
+    #     model = build_ddp(
+    #         model,
+    #         cfg.device,
+    #         device_ids=[int(os.environ['LOCAL_RANK'])],
+    #         broadcast_buffers=False)
+    #     outputs = multi_gpu_test(model, data_loader, args.tmpdir,
+    #                              args.gpu_collect)
+
+
+    rank, _ = get_dist_info()   
     
     if rank == 0:
         print(f"\n writing results to {path_dict['pkl_file']}")
@@ -158,13 +201,15 @@ def test(cfg, args):
         #     metric_dict = dict(config=args.config, metric=metric)
         #     if path_dict['result_dir'] is not None and rank == 0:
         #         mmcv.dump(metric_dict, path_dict['eval_file'])
-        
-
-
-
+      
 
 def check_set_dir_root(cfg, args):
     path_dict = {}
+    
+    # check test images path
+    test_images_dir_path = os.path.join(cfg.data.test.img_prefix)
+    assert os.path.isdir(test_images_dir_path), f"check test images directory path : {test_images_dir_path}"
+        
     # check model path
     model_dir = os.path.join(cfg.work_dir, args.model_dir)
     assert os.path.isdir(model_dir), f"check model directory path : {model_dir}"
@@ -198,11 +243,13 @@ def check_set_dir_root(cfg, args):
     timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     eval_file = os.path.join(result_dir, f'eval_{timestamp}.json')
     
+    path_dict['test_images_dir'] = test_images_dir_path
     path_dict['model_file'] = model_path
     path_dict['result_dir'] = result_dir
     path_dict['result_img_dir'] = result_images_dir
     path_dict['pkl_file'] = pkl_path
     path_dict['eval_file'] = eval_file
+    
       
     return path_dict
     
