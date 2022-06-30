@@ -7,10 +7,12 @@ dir_info = dict(
     labelme_dir = "labelme",
     annotations_dir = "annotations",
     dataset_dir = "train_dataset",      
-    org_images_dir = 'org_images'
+    train_images_dir = 'trian_images',
+    val_images_dir = 'val_images'
 )
 
 options = dict(
+    ratio_val = 0.01,
     save_gt_image = False,
     visul_gt_image_dir = 'gt_images',
     augmentation = dict(
@@ -27,7 +29,8 @@ json = dict(
     valid_categorys=['paprika', "strawberry", "melon", 'onion', "seeding_pepper", 'cucumber', 'tomato', 'test'],
     valid_object = ["leaf", 'midrid', 'stem', 'petiole', 'flower', 'fruit', 'y_fruit', 'cap', 
                     'first_midrid', 'last_midrid', 'mid_midrid', 'side_midrid'],
-    file_name = 'dataset.json'
+    train_file_name = 'train_dataset.json',
+    val_file_name = 'val_dataset.json'
     )
 
 dataset = dict(
@@ -37,7 +40,7 @@ dataset = dict(
                 year = 2022,
                 contributor = ' ',
                 data_created = f"{time.strftime('%Y/%m/%d', time.localtime(time.time()))}"),
-    licenses = dict(url = ' ',
+                licenses = dict(url = ' ',
                     id = 1,
                     name = ' ')   
     
