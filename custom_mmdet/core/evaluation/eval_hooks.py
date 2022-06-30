@@ -52,7 +52,7 @@ class EvalHook(BaseEvalHook):
         if not self._should_evaluate(runner):
             return
 
-        from mmdet.apis import single_gpu_test
+        from custom_mmdet.apis import single_gpu_test
         results = single_gpu_test(runner.model, self.dataloader, show=False)
         runner.log_buffer.output['eval_iter_num'] = len(self.dataloader)
         key_score = self.evaluate(runner, results)
