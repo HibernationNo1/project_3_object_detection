@@ -9,9 +9,9 @@ import os
 import torch
 assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
-# python main.py --mode labelme --cfg configs/labelme_config.py --ann paprika
+# python main.py --mode labelme --cfg configs/labelme_config.py --ann strawberry
 # python main.py --mode train --cfg configs/train_config.py --cat paprika --epo 40
-# python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-22-1457_paprika --cat paprika --epo 40
+# python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-29-1747_strawberry --cat strawberry
 
 
 
@@ -26,15 +26,19 @@ def parse_args():
     # mode : labelme 
     parser.add_argument('--ann', help= "category of dataset     \n required")
     parser.add_argument('--json_name', help="name of train dataset file in .json format")
-    parser.add_argument('--train', action = 'store_true', help = 'if True, go training after make custom dataset' )
+    parser.add_argument("--ratio-val", default = 0, help = "split ratio from train_dataset to val_dataset for valditate during training") 
+    parser.add_argument('--train', action = 'store_true', help = 'if True, go training after make custom dataset' ) # TODO
+    
     
     
     # mode : train
     parser.add_argument('--train_json', help= "name of train dataset file in .json format")
+    parser.add_argument('--val_json', help= "name of train dataset file in .json format")
     parser.add_argument(
-        '--no-validate',
-        action='store_true',
-        help='whether not to evaluate the checkpoint during training')
+        '--validate',
+        default=False,
+        action="store_true",
+        help='whether do evaluate the checkpoint during training')
         
     # mode : test
     parser.add_argument('--model_dir', help='directory name containing trained model in .pth format  \n required')
@@ -113,13 +117,16 @@ def parse_args():
 
 
 def set_config(args):
+    
     cfg = Config.fromfile(args.cfg)
     
     assert isinstance(cfg, mmcv.Config), \
         f'cfg got wrong type: {type(cfg)}, expected mmcv.Config'
             
     if args.mode == 'labelme':
-        cfg.mode == "labelme"
+        cfg.mode = "labelme"
+        
+        cfg.options.ratio_val = args.ratio_val    
         
         if args.json_name is not None: 
             if os.path.splitext(args.json_name)[1] !=".json":
@@ -131,16 +138,22 @@ def set_config(args):
         else: cfg.json.category = args.ann
         
     elif args.mode == 'train':
-        cfg.mode == "train"
+        
+        cfg.mode = "train"
         # set dataset path
         if args.root is not None:       cfg.data_root = args.root
         cfg.data_category = args.cat
-        if args.train_json is not None:       cfg.dataset_json = args.train_json
-        cfg.data.train.ann_file = cfg.data_root + "/train/" + cfg.data_category + "/" + cfg.dataset_json
+        if args.train_json is not None:  
+            if args.validate == False:     
+                assert args.val_json is not None, 'if --validate and --train_json are specified, --train_json and --val_json must be both specified'
+                cfg.train_dataset_json, cfg.val_dataset_json = args.train_json, args.val_json
+        
+        cfg.data.train.ann_file = cfg.data_root + "/train/" + cfg.data_category + "/" + cfg.train_dataset_json
         cfg.data.train.img_prefix= cfg.data_root + "/train/" + cfg.data_category + '/'
         
-        cfg.data.val.ann_file, cfg.data.val.img_prefix = cfg.data.train.ann_file, cfg.data.train.img_prefix
-        
+        cfg.data.val.ann_file = cfg.data_root + "/val/" + cfg.data_category + "/" + cfg.val_dataset_json
+        cfg.data.val.img_prefix= cfg.data_root + "/val/" + cfg.data_category + '/'
+
         # set work_dir path
         if args.work_dir is not None:   cfg.work_dir = args.work_dir
         if args.epo is not None: cfg.runner.max_epochs = args.epo        
