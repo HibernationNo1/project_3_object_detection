@@ -32,10 +32,15 @@ class labelme_custom():
         self.args = args
         self.cfg = cfg
         
-        self.dataset = dict(info = {}, 
+        self.train_dataset = dict(info = {}, 
                             licenses = [],
                             images = [], annotations = [], categories = [],
                             classes = None)
+        self.val_dataset = dict(info = {}, 
+                            licenses = [],
+                            images = [], annotations = [], categories = [],
+                            classes = None)
+        
         self.object_names = []
         
         self.dataset_dir_path = None
@@ -58,7 +63,11 @@ class labelme_custom():
 
     def save_dataset(self):
         self.make_dir()
+        
+        print(f"\n part_6 : saving img...")
         self.save_images()
+        
+        print(f"\n part_7 : saving dataset.json...")
         self.save_json()
         
         
@@ -90,71 +99,123 @@ class labelme_custom():
         dataset_dir = os.path.join(labelme_dir, self.cfg.dir_info.dataset_dir)
         os.makedirs(dataset_dir, exist_ok = True)
         os.makedirs(self.dataset_dir_path, exist_ok= True)
-        self.org_images_dir = os.path.join(self.dataset_dir_path, self.cfg.dir_info.org_images_dir)
-        os.makedirs(self.org_images_dir, exist_ok = False)
+        self.train_images_dir = os.path.join(self.dataset_dir_path, self.cfg.dir_info.train_images_dir)
+        os.makedirs(self.train_images_dir, exist_ok = False)
+        self.val_images_dir = os.path.join(self.dataset_dir_path, self.cfg.dir_info.val_images_dir)
+        os.makedirs(self.val_images_dir, exist_ok = False)
+        
+        
         
 
     def save_images(self):
-        print(f"\n part_6 : saving...")
-        for image_dict in tqdm(self.dataset['images']):
+        print("     train_images")
+        for image_dict in tqdm(self.train_dataset["images"]):
             image_path = os.path.join(self.annnotation_dir_path, image_dict['file_name'])
             
             img = cv2.imread(image_path)
-            img_save_path = os.path.join(self.org_images_dir, os.path.basename(image_dict['file_name']))
+            img_save_path = os.path.join(self.train_images_dir, os.path.basename(image_dict['file_name']))
+            cv2.imwrite(img_save_path, img)
+        
+        print("     val_images")
+        for image_dict in tqdm(self.val_dataset["images"]):
+            image_path = os.path.join(self.annnotation_dir_path, image_dict['file_name'])
+            
+            img = cv2.imread(image_path)
+            img_save_path = os.path.join(self.val_images_dir, os.path.basename(image_dict['file_name']))
             cv2.imwrite(img_save_path, img)
 
 
     def save_json(self):
-        print(f"\n Dataset name to save is : {self.cfg.json.file_name} ")
-        save_dataset_path = os.path.join(self.dataset_dir_path, self.cfg.json.file_name)
-        json.dump(self.dataset, open(save_dataset_path, "w"), indent=4, cls=NpEncoder)                      # save dataset
+        print(f"train dataset name to save is : {self.cfg.json.train_file_name} ")
+        save_train_dataset_path = os.path.join(self.dataset_dir_path, self.cfg.json.train_file_name)
+        json.dump(self.train_dataset, open(save_train_dataset_path, "w"), indent=4, cls=NpEncoder)                     
         
-        print("Done!")
+        print(f"validation dataset name to save is : {self.cfg.json.val_file_name} ")
+        save_val_dataset_path = os.path.join(self.dataset_dir_path, self.cfg.json.val_file_name)
+        json.dump(self.val_dataset, open(save_val_dataset_path, "w"), indent=4, cls=NpEncoder) 
+        
+        print("\n one!")
     
     
     def data_transfer(self):
         labelme_json_list = glob.glob(os.path.join(self.annnotation_dir_path, "*.json"))
         
-        self.get_info()
-        self.get_licenses()
-        self.get_images(labelme_json_list)
-        self.get_annotations(labelme_json_list)
-        self.get_categories()   
+        if self.cfg.options.ratio_val == 0:
+            val_split_num = len(labelme_json_list) + 100000
+        else:
+            val_image_num = len(labelme_json_list) * self.cfg.options.ratio_val     
+            if val_image_num == 0 :
+                val_split_num = 1
+            else : val_split_num = int(len(labelme_json_list)/val_image_num)
+       
         
-
-    def get_info(self) : 
         print(f" part_1 : info")
-        self.dataset['info']['description'] = self.cfg.dataset.info.description
-        self.dataset['info']['url']         = self.cfg.dataset.info.url
-        self.dataset['info']['version']     = self.cfg.dataset.info.version
-        self.dataset['info']['year']        = self.cfg.dataset.info.year
-        self.dataset['info']['contributor'] = self.cfg.dataset.info.contributor
-        self.dataset['info']['data_created']= self.cfg.dataset.info.data_created
-
-    def get_licenses(self):
+        self.get_info("train")
+        self.get_info("val")
+        
         print(f"\n part_2 : licenses")
+        self.get_licenses("train")
+        self.get_licenses('val')
+        
+        print(f"\n part_3 : images")
+        self.get_images(labelme_json_list, val_split_num)
+        
+        print(f"\n part_4 : annotations")
+        self.get_annotations(labelme_json_list, val_split_num)
+        
+        print(f"\n part_5 : categories")
+        self.get_categories("train")   
+        self.get_categories("val") 
+
+    def get_info(self, mode) : 
+        if mode == "train":
+            self.train_dataset['info']['description'] = self.cfg.dataset.info.description
+            self.train_dataset['info']['url']         = self.cfg.dataset.info.url
+            self.train_dataset['info']['version']     = self.cfg.dataset.info.version
+            self.train_dataset['info']['year']        = self.cfg.dataset.info.year
+            self.train_dataset['info']['contributor'] = self.cfg.dataset.info.contributor
+            self.train_dataset['info']['data_created']= self.cfg.dataset.info.data_created
+            self.train_dataset['info']['for_what']= "train"
+        elif mode == "val":
+            self.val_dataset['info']['description'] = self.cfg.dataset.info.description
+            self.val_dataset['info']['url']         = self.cfg.dataset.info.url
+            self.val_dataset['info']['version']     = self.cfg.dataset.info.version
+            self.val_dataset['info']['year']        = self.cfg.dataset.info.year
+            self.val_dataset['info']['contributor'] = self.cfg.dataset.info.contributor
+            self.val_dataset['info']['data_created']= self.cfg.dataset.info.data_created
+            self.val_dataset['info']['for_what']= "va;"
+            
+
+    def get_licenses(self, mode):            
         if self.cfg.dataset.licenses is not None:
             tmp_dict = dict(url = self.cfg.dataset.licenses.url,
                             id = self.cfg.dataset.licenses.id,
                             name = self.cfg.dataset.licenses.name)   
-            self.dataset['licenses'].append(tmp_dict)  # 기존 coco dataset은 license가 여러개 존재
+            if mode == "train":
+                self.train_dataset['licenses'].append(tmp_dict)  # 기존 coco dataset은 license가 여러개 존재
+            elif mode == "val":
+                self.val_dataset['licenses'].append(tmp_dict) 
         else: 
             pass  
     
-    def get_categories(self):
-        print(f"\n part_5 : categories")
-        for i, object_name in enumerate(tqdm(self.object_names)):
+    def get_categories(self, mode):
+        for i, object_name in enumerate(self.object_names):
             tmp_categories_dict = {}
             tmp_categories_dict['supercategory'] = object_name                          # str
             tmp_categories_dict['id'] = self.object_names.index(object_name)            # int
             tmp_categories_dict['name'] = object_name                                    # str
-            self.dataset['categories'].append(tmp_categories_dict)
-        
-        self.dataset['classes'] = self.object_names
+            if mode == "train" :
+                self.train_dataset['categories'].append(tmp_categories_dict)
+            elif mode == "val" :
+                self.val_dataset['categories'].append(tmp_categories_dict)
+
+        if mode == "train" :
+            self.train_dataset['classes'] = self.object_names
+        elif mode == "val" :
+            self.val_dataset['classes'] = self.object_names
         
            
-    def get_annotations(self, labelme_json_list):
-        print(f"\n part_4 : annotations")
+    def get_annotations(self, labelme_json_list, val_split_num):
         id_count = 1
         for i, json_file in enumerate(tqdm(labelme_json_list)):
             with open(json_file, "r") as fp:
@@ -195,8 +256,11 @@ class labelme_custom():
                         
                         
                     else : continue     # TODO : segmentation이 아닌 dataset을 다룰 때 기능 추가
- 
-                    self.dataset['annotations'].append(tmp_annotations_dict)
+
+                    if i % val_split_num == 0:
+                        self.val_dataset['annotations'].append(tmp_annotations_dict)
+                    else:
+                        self.train_dataset['annotations'].append(tmp_annotations_dict)                    
 
 
     def polygons_to_mask(self, img_shape, polygons):
@@ -229,18 +293,17 @@ class labelme_custom():
             right_bottom_r - left_top_r,
         ]
 
-    def get_images(self, labelme_json_list):
-        print(f"\n part_3 : images")
+    def get_images(self, labelme_json_list, val_split_num):
         yyyy_mm_dd_hh_mm = time.strftime('%Y-%m-%d', time.localtime(time.time())) \
                        + " "+ str(time.localtime(time.time()).tm_hour) \
                        + ":" + str(time.localtime(time.time()).tm_min)
-                       
-        for i, json_file in enumerate(tqdm(labelme_json_list)):
+        
+        for i, json_file in enumerate(tqdm(labelme_json_list)):                
             tmp_images_dict = {}
             with open(json_file, "r") as fp:
                 data = json.load(fp) 
                 
-                tmp_images_dict['license'] = len(self.dataset['licenses'])  # license가 1개 임의의 값이기 때문에 1로 통일
+                tmp_images_dict['license'] = len(self.train_dataset['licenses'])  # license가 1개 임의의 값이기 때문에 1로 통일
                 tmp_images_dict['file_name'] = data['imagePath']
                 tmp_images_dict['coco_url'] = " "                       # str
                 tmp_images_dict['height'] = data["imageHeight"]         # int
@@ -248,8 +311,11 @@ class labelme_custom():
                 tmp_images_dict['date_captured'] = yyyy_mm_dd_hh_mm     # str   
                 tmp_images_dict['flickr_url'] = " "                     # str
                 tmp_images_dict['id'] = i+1                                 # 중복되지 않는 임의의 int값
-                
-            self.dataset["images"].append(tmp_images_dict)
+            
+            if i % val_split_num == 0:
+                self.val_dataset["images"].append(tmp_images_dict)
+            else:
+                self.train_dataset["images"].append(tmp_images_dict)
 
 
 
