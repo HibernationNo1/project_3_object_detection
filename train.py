@@ -61,7 +61,7 @@ def train(cfg, args):
         # _, world_size = get_dist_info()
         # cfg.gpu_ids = range(world_size)
     
-    check_data_root(cfg)   
+    check_data_root(cfg, args)   
     work_dir = set_dir_path(cfg)
  
     cfg.dump(os.path.join(work_dir, os.path.basename(args.cfg)))        # save config file(.py)
@@ -102,13 +102,14 @@ def train(cfg, args):
             mmdet_version=__version__ + get_git_hash()[:7],
             CLASSES=datasets[0].CLASSES)
     
+    
     # train_detector
     train_detector(
         model,
         datasets,
         cfg,
         distributed=distributed,
-        validate=(not args.no_validate),
+        validate=args.validate ,
         timestamp=timestamp,
         meta=meta)
     
@@ -167,9 +168,18 @@ def set_dir_path(cfg):
     
 
 
-def check_data_root(cfg):
+def check_data_root(cfg, args):
     category_dir = os.path.join(os.path.join(os.path.abspath(cfg.data_root),'train'), cfg.data_category)
-    assert os.path.isdir(category_dir), f"check category dir path : {category_dir}"
+    assert os.path.isdir(category_dir), f"check category train_dir path : {category_dir}"
     
-    dataset_json = os.path.join(category_dir, cfg.dataset_json)
-    assert os.path.isfile(dataset_json), f"check dataset json file path : {dataset_json}"
+    train_dataset_json = os.path.join(category_dir, cfg.train_dataset_json)
+    assert os.path.isfile(train_dataset_json), f"check train dataset json file path : {train_dataset_json}"
+    
+    if args.validate == False: 
+        category_dir = os.path.join(os.path.join(os.path.abspath(cfg.data_root),'val'), cfg.data_category)
+        assert os.path.isdir(category_dir), f"check category val_dir path : {category_dir}"
+    
+        val_dataset_json = os.path.join(category_dir, cfg.val_dataset_json)
+        assert os.path.isfile(val_dataset_json), f"check val dataset json file path : {val_dataset_json}"
+        
+        
