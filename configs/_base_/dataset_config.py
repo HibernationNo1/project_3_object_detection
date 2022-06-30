@@ -28,7 +28,7 @@ val_pipeline = [
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
             dict(type='Pad', size_divisor=32),
-            dict(type='DefaultFormatBundle')
+            dict(type='DefaultFormatBundle'),
             dict(type='Collect', keys=['img']),
         ])
 ]
@@ -53,19 +53,20 @@ dataset_type = 'CustomDataset'
 
 data_root = 'data'
 data_category = 'paprika'
-dataset_json = 'dataset.json'
+train_dataset_json = 'train_dataset.json'
+val_dataset_json = 'val_dataset.json'
 
 data = dict(
     samples_per_gpu=2,  # batch_size
     workers_per_gpu=1, 
     train=dict(
         type=dataset_type,
-        ann_file=data_root + "/train/" + data_category + "/" + dataset_json,    
+        ann_file=data_root + "/train/" + data_category + "/" + train_dataset_json,    
         img_prefix=data_root  + "/train/" + data_category + "/",              
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + "/val/" + data_category + "/" + dataset_json,      # TODO
+        ann_file=data_root + "/val/" + data_category + "/" + val_dataset_json,      # TODO
         img_prefix=data_root  + "/val/" + data_category + "/",               
         pipeline=val_pipeline),
     test=dict(
