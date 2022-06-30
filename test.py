@@ -47,10 +47,6 @@ def test(cfg, args):
     else:
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
-
-
-    test_dataloader_default_args = dict(
-        samples_per_gpu=1, workers_per_gpu=2, dist=distributed, shuffle=False)
     
     # in case the test dataset is concatenated
     if isinstance(cfg.data.test, dict):
@@ -67,19 +63,12 @@ def test(cfg, args):
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
 
     
-    
-    
-
-    
-    batch_size = 4
+ 
+    batch_size = cfg.data.test.batch_size
     imgs_path = glob.glob(os.path.join(path_dict['test_images_dir'], "*.jpg"))
     batch_imgs = [imgs_path[x:x + batch_size] for x in range(0, len(imgs_path), batch_size)]
-    
-    cfg.model.train_cfg = None
-    # model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # just build model, why needed?
-    
-    device = 'cuda:0'
-    model = init_detector(cfg, path_dict['model_file'], device = device)
+
+    model = init_detector(cfg, path_dict['model_file'], device = cfg.device)
 
     outputs = []
     if not distributed:
@@ -109,17 +98,9 @@ def test(cfg, args):
                         show=True,
                         out_file=out_file,
                         score_thr=args.show_score_thr)
-                      
-            # encode mask results
-            if isinstance(result[0], tuple):
-                results = [(bbox_results, encode_mask_results(mask_results))
-                        for bbox_results, mask_results in results]
-            # This logic is only used in panoptic segmentation test.
-            elif isinstance(results[0], dict) and 'ins_results' in results[0]:
-                for j in range(len(results)):
-                    bbox_results, mask_results = results[j]['ins_results']
-                    results[j]['ins_results'] = (bbox_results,
-                                                encode_mask_results(mask_results))     
+            
+            results = encode_mask(results)
+             
         
             outputs.extend(results)
     else:   # TODO
@@ -203,6 +184,23 @@ def test(cfg, args):
         #         mmcv.dump(metric_dict, path_dict['eval_file'])
       
 
+
+def encode_mask(results):        
+    # encode mask results
+    if isinstance(results[0], tuple):
+        results = [(bbox_results, encode_mask_results(mask_results))
+                for bbox_results, mask_results in results]
+    # This logic is only used in panoptic segmentation test.
+    elif isinstance(results[0], dict) and 'ins_results' in results[0]:
+        for j in range(len(results)):
+            bbox_results, mask_results = results[j]['ins_results']
+            results[j]['ins_results'] = (bbox_results,
+                                        encode_mask_results(mask_results))
+            
+    return results
+        
+        
+        
 def check_set_dir_root(cfg, args):
     path_dict = {}
     
