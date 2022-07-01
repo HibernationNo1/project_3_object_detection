@@ -4,6 +4,7 @@ import glob
 import cv2
 from tqdm import tqdm 
 import random
+import numpy as np
 
 import mmcv
 # from mmcv.runner import init_dist, get_dist_info, _load_checkpoint
@@ -65,10 +66,11 @@ def test(cfg, args):
     
  
     batch_size = cfg.data.test.batch_size
-    imgs_path = glob.glob(os.path.join(path_dict['test_images_dir'], "*.jpg"))
-    batch_imgs = [imgs_path[x:x + batch_size] for x in range(0, len(imgs_path), batch_size)]
+    batch_imgs_path = glob.glob(os.path.join(path_dict['test_images_dir'], "*.jpg"))
+    batch_imgs_list = [batch_imgs_path[x:x + batch_size] for x in range(0, len(batch_imgs_path), batch_size)]
 
     model = init_detector(cfg, path_dict['model_file'], device = cfg.device)
+    classes = model.CLASSES
 
     outputs = []
     if not distributed:
@@ -76,17 +78,17 @@ def test(cfg, args):
         model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
         model.cfg = codel_config
 
-        for imgs_path in tqdm(batch_imgs):   
+        for batch_imgs_path in tqdm(batch_imgs_list):   
             with torch.no_grad():
-                results = inference_detector(model, imgs_path)
+                results = inference_detector(model, batch_imgs_path)
 
             out_files = []
-            for img_path in imgs_path:
+            for img_path in batch_imgs_path:
                 file_name = os.path.basename(img_path)
                 out_file = os.path.join(path_dict['result_img_dir'], file_name)
                 out_files.append(out_file)
             
-            for img_path, out_file, result in zip(imgs_path, out_files, results):
+            for img_path, out_file, result in zip(batch_imgs_path, out_files, results):
                 img = cv2.imread(img_path)      
     
                 model.module.show_result(
@@ -98,10 +100,11 @@ def test(cfg, args):
                         show=True,
                         out_file=out_file,
                         score_thr=args.show_score_thr)
-            
+
+            if cfg.get_result_ann:
+                result_list = get_result_ann(results, batch_imgs_path, classes, args.show_score_thr)
+ 
             results = encode_mask(results)
-             
-        
             outputs.extend(results)
     else:   # TODO
         # model = build_ddp(
@@ -112,78 +115,104 @@ def test(cfg, args):
         # outputs = multi_gpu_test(model, data_loader, args.tmpdir,
         #                          args.gpu_collect)
         pass
+    
         
-    
-    # # -------------
-    # test_loader_cfg = {
-    #     **test_dataloader_default_args,
-    #     **cfg.data.get('test_dataloader', {})
-    # }
-        
-    # # build the dataloader
-    # dataset = build_dataset(cfg.data.test)
-    # data_loader = build_dataloader(dataset, **test_loader_cfg)
-    
-    
-    # # build the model and load checkpoint
-    # cfg.model.train_cfg = None
-    # model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))     # just build model, why needed?
-    
-    # # from mmcv.runner import load_checkpoint 
-    # # checkpoint = load_checkpoint(model, model_path, map_location='cpu')
-    
-    # checkpoint = load_checkpoint(model, path_dict['model_file'], map_location='cpu')
-    # # checkpoint = _load_checkpoint(path_dict['model_file'], map_location='cpu')
-   
-    
-    # if 'CLASSES' in checkpoint.get('meta', {}):
-    #     model.CLASSES = checkpoint['meta']['CLASSES']
-    # else:
-    #     model.CLASSES = dataset.CLASSES
-
-    # if not distributed:
-    #     model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
-   
-    #     outputs = single_gpu_test(model, data_loader, 
-    #                               out_dir = path_dict['result_img_dir'],
-    #                               img_dir = path_dict['test_images_dir'],
-    #                               show_score_thr = args.show_score_thr)
-    # else:   # TODO
-    #     model = build_ddp(
-    #         model,
-    #         cfg.device,
-    #         device_ids=[int(os.environ['LOCAL_RANK'])],
-    #         broadcast_buffers=False)
-    #     outputs = multi_gpu_test(model, data_loader, args.tmpdir,
-    #                              args.gpu_collect)
-
-
     rank, _ = get_dist_info()   
-    
     if rank == 0:
         print(f"\n writing results to {path_dict['pkl_file']}")
         mmcv.dump(outputs, path_dict['pkl_file'])   
-            
-            
+      
         kwargs = {} 
-
-        # TODO 
-        # if args.eval:       # python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-22-1457_paprika --cat paprika --epo 40 --eval mAP
-        #     eval_kwargs = cfg.get('evaluation', {}).copy()
-        #     # hard-code way to remove EvalHook args
-        #     for key in [
-        #             'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
-        #             'rule', 'dynamic_intervals'
-        #     ]:
-        #         eval_kwargs.pop(key, None)
-        #     eval_kwargs.update(dict(metric=args.eval, **kwargs))
-        #     metric = dataset.evaluate(outputs, **eval_kwargs)
-        #     print(metric)
-        #     metric_dict = dict(config=args.config, metric=metric)
-        #     if path_dict['result_dir'] is not None and rank == 0:
-        #         mmcv.dump(metric_dict, path_dict['eval_file'])
+        if args.eval:      
+            eval_kwargs = cfg.get('evaluation', {}).copy()
+            # hard-code way to remove EvalHook args
+            for key in [
+                    'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
+                    'rule', 'dynamic_intervals'
+            ]:
+                eval_kwargs.pop(key, None)
+            eval_kwargs.update(dict(metric=args.eval, **kwargs))
+            
+            val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))     # validation dataset으로 evalidate
+            metric = val_dataset.evaluate(outputs, **eval_kwargs)
+            metric_dict = dict(config=args.cfg, metric=metric)
+            if path_dict['result_dir'] is not None and rank == 0:
+                mmcv.dump(metric_dict, path_dict['eval_file'])
+    else: # TODO
+        pass
       
 
+def get_result_ann(results, batch_imgs_path, classes, score_thr):
+    result_list = []
+    for result, img_path in zip(results, batch_imgs_path):  # 이미지 1개당 detect한 object
+        bbox_results, mask_results = result
+        
+        labels = [
+            np.full(bbox.shape[0], i, dtype=np.int32)
+            for i, bbox in enumerate(bbox_results)
+        ]
+        labels = np.concatenate(labels)
+        
+        bbox_results = np.vstack(bbox_results)
+
+        if mask_results is not None and len(labels) > 0:  # non empty
+            segm_results = mmcv.concat_list(mask_results)
+            if isinstance(segm_results[0], torch.Tensor):
+                segm_results = torch.stack(segm_results, dim=0).detach().cpu().numpy()
+            else:
+                segm_results = np.stack(segm_results, axis=0)               
+                
+            if score_thr > 0:
+                assert bbox_results is not None and bbox_results.shape[1] == 5
+                scores = bbox_results[:, -1]
+                inds = scores > score_thr
+                bbox_results = bbox_results[inds, :]
+                labels = labels[inds]
+                segm_results = segm_results[inds, ...]
+            
+            labels[:bbox_results.shape[0]]
+            
+            
+            object_list = []
+            for label_idx, segm, bbox in zip(labels, segm_results, bbox_results):
+                segm = np.array(segm)
+                gray_segm = np.zeros(shape = segm.shape, dtype = np.uint8)
+                gray_segm[segm == False] = 0
+                gray_segm[segm == True] = 1
+                
+                boundary_segm_points = []
+                points_list_4dim, _ = cv2.findContours(gray_segm, mode = cv2.RETR_EXTERNAL, method = cv2.CHAIN_APPROX_NONE)
+                points_list_3dim = points_list_4dim[0]
+                for points_list_2dim in points_list_3dim:
+                    boundary_segm_points.append(points_list_2dim[0])
+
+                pull_segm_points = np.argwhere(gray_segm)
+                
+                
+                x_min, y_min, x_max, y_max, score = bbox
+                bbox = [int(x_min), int(y_min), int(x_max), int(y_max)]
+
+                label = classes[label_idx]
+                
+                result_dict = {}
+                result_dict['boundary_segm'] = boundary_segm_points
+                result_dict['pull_segm_points'] = pull_segm_points
+                result_dict['bbox'] = bbox
+                result_dict['score'] = score
+                result_dict['label'] = label
+                object_list.append(result_dict)
+            
+            image_result_dict = {}
+            image_result_dict["img_path"] = img_path
+            image_result_dict["result"] = object_list   
+            result_list.append(image_result_dict) 
+        else: 
+            continue
+    
+    
+    return result_list
+            
+                    
 
 def encode_mask(results):        
     # encode mask results
