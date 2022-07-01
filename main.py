@@ -9,9 +9,9 @@ import os
 import torch
 assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
-# python main.py --mode labelme --cfg configs/labelme_config.py --ann strawberry
+# python main.py --mode labelme --cfg configs/labelme_config.py --ann strawberry --ratio-val 0.01
 # python main.py --mode train --cfg configs/train_config.py --cat paprika --epo 40
-# python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-29-1747_strawberry --cat strawberry
+# python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-29-1747_strawberry --cat strawberry --eval segm
 
 
 
@@ -26,7 +26,7 @@ def parse_args():
     # mode : labelme 
     parser.add_argument('--ann', help= "category of dataset     \n required")
     parser.add_argument('--json_name', help="name of train dataset file in .json format")
-    parser.add_argument("--ratio-val", default = 0, help = "split ratio from train_dataset to val_dataset for valditate during training") 
+    parser.add_argument("--ratio-val", type=float, default = 0.0, help = "split ratio from train_dataset to val_dataset for valditate during training") 
     parser.add_argument('--train', action = 'store_true', help = 'if True, go training after make custom dataset' ) # TODO
     
     
@@ -53,6 +53,8 @@ def parse_args():
         nargs='+',
         help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
         ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC')
+    parser.add_argument('--result-ann', choises = [True, False], help='if True, get result annotation such as labels, segmentation coordinate, bbox e.g.')
+     
      
     
     # mode train or test
@@ -166,9 +168,15 @@ def set_config(args):
         if args.root is not None:       cfg.data_root = args.root
         cfg.data_category = args.cat
         cfg.data.test.img_prefix = cfg.data_root + "/test/" + cfg.data_category + '/' 
-        cfg.data.test.ann_file  = os.path.join(os.path.join(os.path.abspath(cfg.work_dir), args.model_dir), cfg.dataset_json ) 
        
         if args.work_dir is not None:   cfg.work_dir = args.work_dir
+        
+        if args.eval:
+            cfg.data.val.ann_file = cfg.data_root + "/val/" + cfg.data_category + "/" + cfg.val_dataset_json
+            cfg.data.val.img_prefix= cfg.data_root + "/val/" + cfg.data_category + '/'
+        
+        if args.result_ann is not None:
+            cfg.get_result_ann = args.result_ann
     
     return cfg
 
