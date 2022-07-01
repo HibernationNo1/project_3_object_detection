@@ -74,7 +74,10 @@ def train(cfg, args):
     logger, meta, timestamp = get_logger_set_meta(work_dir, cfg, args, distributed)
     cfg.work_dir = work_dir
     
- 
+    # build dataset
+    datasets = [build_dataset(cfg.data.train)]      # <class 'mmdet.datasets.custom.CocoDataset'>
+    cfg.model.roi_head.bbox_head.num_classes = len(datasets[0].CLASSES)
+    cfg.model.roi_head.mask_head.num_classes = len(datasets[0].CLASSES)    
     
     # build model
     model = build_detector(
@@ -83,18 +86,9 @@ def train(cfg, args):
         test_cfg=cfg.get('test_cfg'))
 
     # TODO 아래 경로로 가서 모델 뜯어고쳐보기
-    # self._module_dict가 언제 할당되는지 확인해보기.
     # print(f"            train.py type(model) : {type(model)}")      # <class 'mmdet.models.detectors.mask_rcnn.MaskRCNN'>
-    
     model.init_weights()
-    
-    
-    
-    # build dataset
-    
-    datasets = [build_dataset(cfg.data.train)]
-    # print(f"            train.py type(datasets) : {type(datasets[0])}")      # <class 'mmdet.datasets.custom.CocoDataset'>
-    
+
     if cfg.checkpoint_config is not None:   
         # save mmdet version, config file content and class names in
         # checkpoints as meta data
