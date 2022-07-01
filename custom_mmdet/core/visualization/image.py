@@ -135,6 +135,7 @@ def draw_labels(ax,
     Returns:
         matplotlib.Axes: The result axes.
     """
+    
     for i, (pos, label) in enumerate(zip(positions, labels)):
         label_text = class_names[
             label] if class_names is not None else f'class {label}'
@@ -263,7 +264,8 @@ def imshow_det_bboxes(img,
         'segms and bboxes should not be None at the same time.'
 
     img = mmcv.imread(img).astype(np.uint8)
-
+    
+    
     if score_thr > 0:
         assert bboxes is not None and bboxes.shape[1] == 5
         scores = bboxes[:, -1]
@@ -272,6 +274,11 @@ def imshow_det_bboxes(img,
         labels = labels[inds]
         if segms is not None:
             segms = segms[inds, ...]
+    
+    # print(f"len(bboxes) : {len(bboxes)}")
+    # print(f"len(segms) : {len(segms)}")
+    # print(f"len(labels) : {len(labels)}")
+    # exit()
 
     img = mmcv.bgr2rgb(img)
     width, height = img.shape[1], img.shape[0]

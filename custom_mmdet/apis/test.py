@@ -16,8 +16,8 @@ from custom_mmdet.core import encode_mask_results
 
 def single_gpu_test(model,
                     data_loader,
+                    show = False,
                     out_dir=None,
-                    img_dir=None,
                     show_score_thr=0.3):
     model.eval()
     results = []
@@ -30,7 +30,7 @@ def single_gpu_test(model,
             result = model(return_loss=False, rescale=True, **data)
         batch_size = len(result)
 
-        if out_dir and img_dir:         
+        if out_dir:         
             if batch_size == 1 and isinstance(data['img'][0], torch.Tensor):
                 img_tensor = data['img'][0]
             else:
