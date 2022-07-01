@@ -2,7 +2,7 @@
 mode = "train"
 
 
-img_scale = (1706, 1280)
+img_scale = (720, 1280)        # height, width
 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
@@ -56,6 +56,8 @@ data_category = 'paprika'
 train_dataset_json = 'train_dataset.json'
 val_dataset_json = 'val_dataset.json'
 
+get_result_ann = False
+
 data = dict(
     samples_per_gpu=2,  # batch_size
     workers_per_gpu=1, 
@@ -75,6 +77,6 @@ data = dict(
         ann_file= None,                                                          # work_dir/model_dir/dataset.json
         img_prefix=data_root  + "/test/" + data_category + "/",                 # test할 image의 dir        
         pipeline=test_pipeline))
-evaluation = dict(metric=['bbox', 'segm'])
+evaluation = dict(metric=['bbox', 'segm'])      # choise in ['bbox', 'segm']
 
 
