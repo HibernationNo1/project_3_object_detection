@@ -247,7 +247,7 @@ class labelme_custom():
                         area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
                         tmp_annotations_dict["area"] = float(area)
                         
-                        tmp_annotations_dict['iscrowd'] = None     # TODO iscrowd ==  1인 경우의 dataset다룰때 사용해보기.
+                        tmp_annotations_dict['iscrowd'] = 0     # TODO iscrowd ==  1인 경우의 dataset다룰때 사용해보기.  choise in [0, 1]
                         tmp_annotations_dict['image_id'] = i+1
                         tmp_annotations_dict['bbox'] = list(map(float, self.mask2box(mask)))
                         tmp_annotations_dict['category_id'] = self.object_names.index(shape['label'])       # int, same to category_id
