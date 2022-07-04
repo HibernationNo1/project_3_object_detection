@@ -9,9 +9,12 @@ import os
 import torch
 assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
-# python main.py --mode labelme --cfg configs/labelme_config.py --ann strawberry --ratio-val 0.01
-# python main.py --mode train --cfg configs/train_config.py --cat paprika --epo 40
-# python main.py --mode test --cfg configs/train_config.py --model_dir 2022-06-29-1747_strawberry --cat strawberry --eval segm
+# python main.py --mode labelme --cfg configs/swin_maskrcnn.py --ann strawberry --ratio-val 0.01
+# python main.py --mode train --cfg configs/swin_maskrcnn.py --cat paprika --epo 40
+# python main.py --mode test --cfg configs/swin_maskrcnn.py --model_dir 2022-06-29-1747_strawberry --cat strawberry --eval segm
+
+
+# python main.py --mode train --cfg configs/swin_solov2.py --cat paprika --epo 40
 
 
 
@@ -53,7 +56,9 @@ def parse_args():
         nargs='+',
         help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
         ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC')
-    parser.add_argument('--result-ann', choises = [True, False], help='if True, get result annotation such as labels, segmentation coordinate, bbox e.g.')
+    parser.add_argument('--result-ann', 
+                        choices= [True, False],
+                        help='if True, get result annotation such as labels, segmentation coordinate, bbox e.g.')
      
      
     
