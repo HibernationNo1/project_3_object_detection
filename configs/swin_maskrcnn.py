@@ -1,8 +1,8 @@
 _base_ = [
-    '_base_/mask_rcnn_r50_fpn.py',
-    '_base_/dataset_config.py',
-    '_base_/schedule_1x.py',
-    '_base_/default_runtime.py'
+    'swin_maskrcnn/mask_rcnn_r50_fpn.py',
+    'swin_maskrcnn/dataset_config.py',
+    'swin_maskrcnn/schedule_1x.py',
+    './default_runtime.py'
 ]
 
 work_dir = 'work_dir'
@@ -14,7 +14,10 @@ show_dir = 'result_images'
 
 device = 'cuda:0'
 
-pretrained = 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth'  # TODO
+get_result_ann = False
+
+
+pretrained = None # 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth'
 model = dict(
     type='MaskRCNN',
     backbone=dict(
@@ -34,7 +37,7 @@ model = dict(
         out_indices=(0, 1, 2, 3),
         with_cp=False,
         convert_weights=True,
-        init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
+        init_cfg=dict(type='Pretrained', checkpoint=pretrained)),       # fine tuning
     neck=dict(in_channels=[96, 192, 384, 768]))
 
 optimizer = dict(
