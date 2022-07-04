@@ -29,9 +29,7 @@ class TwoStageDetector(BaseDetector):
         if pretrained:
             warnings.warn('DeprecationWarning: pretrained is deprecated, '
                           'please use "init_cfg" instead')
-            backbone.pretrained = pretrained
-        
-        print("custom_mmdet\\models\\two_stage.py")
+            backbone.pretrained = pretrained  
         
         # build_backbone
         self.backbone = build_backbone(backbone)

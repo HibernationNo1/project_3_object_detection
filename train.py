@@ -76,8 +76,14 @@ def train(cfg, args):
     
     # build dataset
     datasets = [build_dataset(cfg.data.train)]      # <class 'mmdet.datasets.custom.CocoDataset'>
-    cfg.model.roi_head.bbox_head.num_classes = len(datasets[0].CLASSES)
-    cfg.model.roi_head.mask_head.num_classes = len(datasets[0].CLASSES)    
+    
+    if cfg.model.type =='MaskRCNN' :
+        cfg.model.roi_head.bbox_head.num_classes = len(datasets[0].CLASSES)
+        cfg.model.roi_head.mask_head.num_classes = len(datasets[0].CLASSES)    
+    elif cfg.model.type =='SOLOv2' :
+        cfg.model.mask_head.num_classes
+       
+    
     
     # build model
     model = build_detector(
@@ -85,9 +91,8 @@ def train(cfg, args):
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
 
-    # TODO 아래 경로로 가서 모델 뜯어고쳐보기
-    # print(f"            train.py type(model) : {type(model)}")      # <class 'mmdet.models.detectors.mask_rcnn.MaskRCNN'>
-    model.init_weights()
+    if cfg.pretrained is not None:  # fine tuning
+        model.init_weights()
 
     if cfg.checkpoint_config is not None:   
         # save mmdet version, config file content and class names in
@@ -169,7 +174,8 @@ def check_data_root(cfg, args):
     train_dataset_json = os.path.join(category_dir, cfg.train_dataset_json)
     assert os.path.isfile(train_dataset_json), f"check train dataset json file path : {train_dataset_json}"
     
-    if args.validate == False: 
+  
+    if args.validate:
         category_dir = os.path.join(os.path.join(os.path.abspath(cfg.data_root),'val'), cfg.data_category)
         assert os.path.isdir(category_dir), f"check category val_dir path : {category_dir}"
     
