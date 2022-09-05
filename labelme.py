@@ -6,8 +6,6 @@ import json
 import numpy as np
 
 import PIL
-import PIL.Image as Image
-import PIL.ImageDraw as ImageDraw
 import cv2
 
 class NpEncoder(json.JSONEncoder):

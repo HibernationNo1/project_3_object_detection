@@ -74,9 +74,10 @@ def train(cfg, args):
     logger, meta, timestamp = get_logger_set_meta(work_dir, cfg, args, distributed)
     cfg.work_dir = work_dir
     
+    
     # build dataset
     datasets = [build_dataset(cfg.data.train)]      # <class 'mmdet.datasets.custom.CocoDataset'>
-    
+       
     if cfg.model.type =='MaskRCNN' :
         cfg.model.roi_head.bbox_head.num_classes = len(datasets[0].CLASSES)
         cfg.model.roi_head.mask_head.num_classes = len(datasets[0].CLASSES)    

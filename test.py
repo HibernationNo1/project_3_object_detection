@@ -13,7 +13,7 @@ from mmcv.runner import init_dist, get_dist_info, load_checkpoint
 import torch
 import warnings
 
-from custom_mmdet.apis import multi_gpu_test, single_gpu_test
+from custom_mmdet.apis import multi_gpu_test
 from custom_mmdet.models import build_detector
 from custom_mmdet.utils import compat_cfg, setup_multi_processes, get_device, build_ddp, build_dp
 from custom_mmdet.datasets import replace_ImageToTensor, build_dataloader, build_dataset 

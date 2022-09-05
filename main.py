@@ -1,6 +1,7 @@
 
 
 from ast import arg
+from textwrap import indent
 import mmcv
 from mmcv import Config
 import argparse
@@ -9,15 +10,12 @@ import os
 import torch
 assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
-# python main.py --mode labelme --cfg configs/swin_maskrcnn.py --ann strawberry --ratio-val 0.01
+# python main.py --mode labelme --cfg configs/labelme_config.py --ann strawberry --ratio-val 0.01
 # python main.py --mode train --cfg configs/swin_maskrcnn.py --cat strawberry --epo 40
 # python main.py --mode test --cfg configs/swin_maskrcnn.py --model_dir 2022-07-06-1855_strawberry --cat strawberry 
 
 
 # python main.py --mode train --cfg configs/swin_solov2.py --cat paprika --epo 40
-
-
-
 
 
 def parse_args():
@@ -28,7 +26,6 @@ def parse_args():
     
     # mode : labelme 
     parser.add_argument('--ann', help= "category of dataset     \n required")
-    parser.add_argument('--json_name', help="name of train dataset file in .json format")
     parser.add_argument("--ratio-val", type=float, default = 0.0, help = "split ratio from train_dataset to val_dataset for valditate during training") 
     parser.add_argument('--train', action = 'store_true', help = 'if True, go training after make custom dataset' ) # TODO
     
@@ -129,9 +126,8 @@ def parse_args():
 
 
 def set_config(args):
-    
     cfg = Config.fromfile(args.cfg)
-    
+
     assert isinstance(cfg, mmcv.Config), \
         f'cfg got wrong type: {type(cfg)}, expected mmcv.Config'
             
@@ -139,12 +135,7 @@ def set_config(args):
         cfg.mode = "labelme"
         
         cfg.options.ratio_val = args.ratio_val    
-        
-        if args.json_name is not None: 
-            if os.path.splitext(args.json_name)[1] !=".json":
-                raise IOError('Only .json type are supoorted now!')
-            cfg.json.file_name = args.json_name
-            
+                    
         if args.ann not in cfg.json.valid_categorys:
             raise KeyError(f"{args.ann} is not valid category.")
         else: cfg.json.category = args.ann
@@ -189,12 +180,12 @@ def set_config(args):
         
         if args.result_ann is not None:
             cfg.get_result_ann = args.result_ann
-    
+
     return cfg
 
 
 if __name__ == "__main__":
-
+    
     args = parse_args()
     
     cfg = set_config(args)

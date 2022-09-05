@@ -12,7 +12,7 @@ pycocotools
 
 
 ### cudatoolkit, torch
-# conda create -n mmdet python=3.8 pytorch torchvision cudatoolkit=11.3 -c pytorch -c conda-forge -y      
+# conda create -n test python=3.8 pytorch==1.10.0 torchvision cudatoolkit=11.3 -c conda-forge -y      
 # conda activate mask
 
 ## install MMDetection manually
