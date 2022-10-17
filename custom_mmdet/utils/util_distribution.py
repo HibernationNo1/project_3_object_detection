@@ -27,7 +27,6 @@ def build_dp(model, device='cuda', dim=0, *args, **kwargs):
         from mmcv.device.mlu import MLUDataParallel
         dp_factory['mlu'] = MLUDataParallel
         model = model.mlu()
-
     
     return dp_factory[device](model, dim=dim, *args, **kwargs)
 

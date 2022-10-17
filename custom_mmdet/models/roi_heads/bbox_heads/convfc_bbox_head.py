@@ -18,7 +18,7 @@ class ConvFCBBoxHead(BBoxHead):
         shared convs -> shared fcs
                                     \-> reg convs -> reg fcs -> reg
     """  # noqa: W605
-
+    
     def __init__(self,
                  num_shared_convs=0,
                  num_shared_fcs=0,
@@ -33,6 +33,7 @@ class ConvFCBBoxHead(BBoxHead):
                  init_cfg=None,
                  *args,
                  **kwargs):
+       
         super(ConvFCBBoxHead, self).__init__(
             *args, init_cfg=init_cfg, **kwargs)
         assert (num_shared_convs + num_shared_fcs + num_cls_convs +
@@ -60,7 +61,7 @@ class ConvFCBBoxHead(BBoxHead):
                 self.num_shared_convs, self.num_shared_fcs, self.in_channels,
                 True)
         self.shared_out_channels = last_layer_dim
-
+        
         # add cls specific branch
         self.cls_convs, self.cls_fcs, self.cls_last_dim = \
             self._add_conv_fc_branch(

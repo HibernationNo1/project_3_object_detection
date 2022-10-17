@@ -105,7 +105,7 @@ class FPN(BaseModule):
 
         self.lateral_convs = nn.ModuleList()
         self.fpn_convs = nn.ModuleList()
-
+        
         for i in range(self.start_level, self.backbone_end_level):
             l_conv = ConvModule(
                 in_channels[i],
@@ -130,6 +130,7 @@ class FPN(BaseModule):
 
         # add extra conv layers (e.g., RetinaNet)
         extra_levels = num_outs - self.backbone_end_level + self.start_level
+        
         if self.add_extra_convs and extra_levels >= 1:
             for i in range(extra_levels):
                 if i == 0 and self.add_extra_convs == 'on_input':

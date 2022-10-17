@@ -220,6 +220,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
                 dist.all_reduce(loss_value.div_(dist.get_world_size()))
             log_vars[loss_name] = loss_value.item()
 
+       
         return loss, log_vars
 
     def train_step(self, data, optimizer):

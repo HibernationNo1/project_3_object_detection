@@ -53,7 +53,7 @@ class CustomDataset(Dataset):
             only works when `test_mode=False`, i.e., we never filter images
             during tests.
     """
-
+    
     CLASSES = None    
         
     PALETTE = None
@@ -76,21 +76,10 @@ class CustomDataset(Dataset):
         self.proposal_file = proposal_file
         self.test_mode = test_mode
         self.filter_empty_gt = filter_empty_gt
-        self.file_client = mmcv.FileClient(**file_client_args)
-        self.data_ann = mmcv.load(ann_file) 
+        self.file_client = mmcv.FileClient(**file_client_args)     
+        self.data_ann = mmcv.load(ann_file)        
         self.CLASSES = self.get_classes(self.data_ann, classes)
         self.PALETTE = self.get_palette()
- 
-        # print(f"self.ann_file : {self.ann_file}")
-        # print(f"self.data_root : {self.data_root}")
-        # print(f"self.img_prefix : {self.img_prefix}")
-        # print(f"self.proposal_file : {self.proposal_file}")
-        # print(f"self.test_mode : {self.test_mode}")
-        # print(f"self.filter_empty_gt : {self.filter_empty_gt}")
-        # print(f"self.file_client : {self.file_client}")
-        # print(f"self.CLASSES : {self.CLASSES}")
-        # exit()
-
         
         # join paths if data_root is specified
         if self.data_root is not None:
@@ -106,11 +95,13 @@ class CustomDataset(Dataset):
                                               self.proposal_file)
                 
         
+        
         # load annotations (and proposals)
         if hasattr(self.file_client, 'get_local_path'):
+    
             with self.file_client.get_local_path(self.ann_file) as local_path:
+                
                 self.data_infos = self.load_annotations(local_path)
-  
         else:
             warnings.warn(
                 'The used MMCV version does not have get_local_path. '
@@ -118,7 +109,7 @@ class CustomDataset(Dataset):
                 'might cause errors if the path is not a local path. '
                 'Please use MMCV>= 1.3.16 if you meet errors.')
             self.data_infos = self.load_annotations(self.ann_file)
-
+       
         if self.proposal_file is not None:  # 해당 없음
             if hasattr(self.file_client, 'get_local_path'):
                 with self.file_client.get_local_path(
@@ -135,6 +126,7 @@ class CustomDataset(Dataset):
             self.proposals = None
                 
         # filter images too small and containing no annotations
+      
         if not test_mode:  
             valid_inds = self._filter_imgs()
             self.data_infos = [self.data_infos[i] for i in valid_inds]
@@ -196,6 +188,7 @@ class CustomDataset(Dataset):
         """
 
         self.coco = COCO(ann_file)
+       
         # The order of returned `cat_ids` will not
         # change with the order of the CLASSES
       

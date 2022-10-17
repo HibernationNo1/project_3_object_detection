@@ -91,9 +91,7 @@ class AdaptivePadding(nn.Module):
     """
 
     def __init__(self, kernel_size=1, stride=1, dilation=1, padding='corner'):
-
         super(AdaptivePadding, self).__init__()
-
         assert padding in ('same', 'corner')
 
         kernel_size = to_2tuple(kernel_size)
@@ -182,7 +180,7 @@ class PatchEmbed(BaseModule):
         kernel_size = to_2tuple(kernel_size)
         stride = to_2tuple(stride)
         dilation = to_2tuple(dilation)
-
+        
         if isinstance(padding, str):
             self.adap_padding = AdaptivePadding(
                 kernel_size=kernel_size,
@@ -204,7 +202,7 @@ class PatchEmbed(BaseModule):
             padding=padding,
             dilation=dilation,
             bias=bias)
-
+        
         if norm_cfg is not None:
             self.norm = build_norm_layer(norm_cfg, embed_dims)[1]
         else:
@@ -232,6 +230,8 @@ class PatchEmbed(BaseModule):
         else:
             self.init_input_size = None
             self.init_out_size = None
+        
+    
 
     def forward(self, x):
         """
@@ -245,7 +245,7 @@ class PatchEmbed(BaseModule):
                 - out_size (tuple[int]): Spatial shape of x, arrange as
                     (out_h, out_w).
         """
-
+        
         if self.adap_padding:
             x = self.adap_padding(x)
 
@@ -327,6 +327,8 @@ class PatchMerging(BaseModule):
             dilation=dilation,
             padding=padding,
             stride=stride)
+        
+        
 
         sample_dim = kernel_size[0] * kernel_size[1] * in_channels
 
@@ -334,6 +336,7 @@ class PatchMerging(BaseModule):
             self.norm = build_norm_layer(norm_cfg, sample_dim)[1]
         else:
             self.norm = None
+        
 
         self.reduction = nn.Linear(sample_dim, out_channels, bias=bias)
 

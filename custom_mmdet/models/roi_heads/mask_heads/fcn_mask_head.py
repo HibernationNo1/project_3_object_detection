@@ -63,7 +63,6 @@ class FCNMaskHead(BaseModule):
         self.predictor_cfg = predictor_cfg
         self.fp16_enabled = False
         self.loss_mask = build_loss(loss_mask)
-
         self.convs = ModuleList()
         for i in range(self.num_convs):
             in_channels = (
@@ -80,9 +79,12 @@ class FCNMaskHead(BaseModule):
         upsample_in_channels = (
             self.conv_out_channels if self.num_convs > 0 else in_channels)
         upsample_cfg_ = self.upsample_cfg.copy()
+        
+        
         if self.upsample_method is None:
             self.upsample = None
         elif self.upsample_method == 'deconv':
+            
             upsample_cfg_.update(
                 in_channels=upsample_in_channels,
                 out_channels=self.conv_out_channels,
@@ -102,13 +104,13 @@ class FCNMaskHead(BaseModule):
                 mode=self.upsample_method,
                 align_corners=align_corners)
             self.upsample = build_upsample_layer(upsample_cfg_)
-
         out_channels = 1 if self.class_agnostic else self.num_classes
         logits_in_channel = (
             self.conv_out_channels
             if self.upsample_method == 'deconv' else upsample_in_channels)
         self.conv_logits = build_conv_layer(self.predictor_cfg,
                                             logits_in_channel, out_channels, 1)
+    
         self.relu = nn.ReLU(inplace=True)
         self.debug_imgs = None
 

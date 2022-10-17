@@ -10,8 +10,8 @@ import os
 import torch
 assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
-# python main.py --mode labelme --cfg configs/labelme_config.py --ann strawberry --ratio-val 0.01
-# python main.py --mode train --cfg configs/swin_maskrcnn.py --cat strawberry --epo 40
+# python main.py --mode labelme --cfg configs/labelme_config.py --ann paprika --ratio-val 0.01
+# python main.py --mode train --cfg configs/swin_maskrcnn.py --cat paprika --epo 40
 # python main.py --mode test --cfg configs/swin_maskrcnn.py --model_dir 2022-07-06-1855_strawberry --cat strawberry 
 
 
@@ -127,7 +127,6 @@ def parse_args():
 
 def set_config(args):
     cfg = Config.fromfile(args.cfg)
-
     assert isinstance(cfg, mmcv.Config), \
         f'cfg got wrong type: {type(cfg)}, expected mmcv.Config'
             
@@ -161,7 +160,7 @@ def set_config(args):
         if args.work_dir is not None:   cfg.work_dir = args.work_dir
         if args.epo is not None: cfg.runner.max_epochs = args.epo        
         
-        if not args.finetun : cfg.pretrained = None
+        # if not args.finetun : cfg.pretrained = None
          
         # TODO : add val
     
@@ -189,7 +188,7 @@ if __name__ == "__main__":
     args = parse_args()
     
     cfg = set_config(args)
-    
+   
     if args.mode == 'labelme':
         from labelme import labelme_custom 
         labelme_custom(cfg, args)

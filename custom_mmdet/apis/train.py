@@ -38,6 +38,7 @@ def init_random_seed(seed=None, device='cuda'):
     # https://github.com/open-mmlab/mmdetection/issues/6339
     rank, world_size = get_dist_info()
     seed = np.random.randint(2**31)
+
     if world_size == 1:
         return seed
 
@@ -133,6 +134,7 @@ def train_detector(model,
     # set args and config for training
     runner_type = 'EpochBasedRunner' if 'runner' not in cfg else cfg.runner[
         'type']
+   
     train_dataloader_default_args = dict(
         samples_per_gpu=2,
         workers_per_gpu=2,  
@@ -147,9 +149,9 @@ def train_detector(model,
         **train_dataloader_default_args,
         **cfg.data.get('train_dataloader', {})
     }
-         
+    
     data_loaders = [build_dataloader(ds, **train_loader_cfg) for ds in dataset]
-
+    
     # put model on gpus
     if distributed:
         find_unused_parameters = cfg.get('find_unused_parameters', False)
@@ -163,12 +165,12 @@ def train_detector(model,
             find_unused_parameters=find_unused_parameters)
     else:
         model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
-   
+
     
     # build optimizer
     auto_scale_lr(cfg, distributed, logger)
     optimizer = build_optimizer(model, cfg.optimizer)
-
+    
     runner = build_runner(
         cfg.runner,
         default_args=dict(
@@ -177,12 +179,13 @@ def train_detector(model,
             work_dir=cfg.work_dir,
             logger=logger,
             meta=meta))
-    
+
     # an ugly workaround to make .log and .log.json filenames the same
     runner.timestamp = timestamp
 
     # fp16 setting
     fp16_cfg = cfg.get('fp16', None)
+    
     if fp16_cfg is not None:
         optimizer_config = Fp16OptimizerHook(
             **cfg.optimizer_config, **fp16_cfg, distributed=distributed)
@@ -192,6 +195,7 @@ def train_detector(model,
         optimizer_config = cfg.optimizer_config
     
     # register hooks
+
     runner.register_training_hooks(
         cfg.lr_config,
         optimizer_config,
@@ -205,8 +209,6 @@ def train_detector(model,
             runner.register_hook(DistSamplerSeedHook())
 
     # register eval hooks
-
-    
     if validate:      
         val_dataloader_default_args = dict(
             samples_per_gpu=1,
@@ -250,5 +252,8 @@ def train_detector(model,
         runner.resume(cfg.resume_from)
     elif cfg.load_from:
         runner.load_checkpoint(cfg.load_from)
+    
+    
+    
     
     runner.run(data_loaders, cfg.workflow)

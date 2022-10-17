@@ -5,7 +5,6 @@ from mmcv.utils import build_from_cfg
 
 from ..builder import PIPELINES
 
-
 @PIPELINES.register_module()
 class Compose:
     """Compose multiple transforms sequentially.
@@ -17,7 +16,6 @@ class Compose:
     
 
     def __init__(self, transforms):
-
         assert isinstance(transforms, collections.abc.Sequence)
         self.transforms = []
         for transform in transforms:
@@ -28,7 +26,7 @@ class Compose:
                 self.transforms.append(transform)
             else:
                 raise TypeError('transform must be callable or a dict')
-
+        
     def __call__(self, data):
         """Call function to apply transforms sequentially.
 
@@ -38,13 +36,12 @@ class Compose:
         Returns:
            dict: Transformed data.
         """
-       
+        
         for t in self.transforms:
             data = t(data)
-                
             if data is None:
                 return None
-
+    
         return data
 
     def __repr__(self):

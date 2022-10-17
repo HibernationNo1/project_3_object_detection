@@ -61,9 +61,12 @@ class WindowMSA(BaseModule):
             torch.zeros((2 * window_size[0] - 1) * (2 * window_size[1] - 1),
                         num_heads))  # 2*Wh-1 * 2*Ww-1, nH
 
+        
+        
         # About 2x faster than original impl
         Wh, Ww = self.window_size
         rel_index_coords = self.double_step_seq(2 * Ww - 1, Wh, 1, Ww)
+        
         rel_position_index = rel_index_coords + rel_index_coords.T
         rel_position_index = rel_position_index.flip(1).contiguous()
         self.register_buffer('relative_position_index', rel_position_index)
@@ -176,7 +179,7 @@ class ShiftWindowMSA(BaseModule):
             init_cfg=None)
 
         self.drop = build_dropout(dropout_layer)
-
+      
     def forward(self, query, hw_shape):
         B, L, C = query.shape
         H, W = hw_shape
@@ -332,6 +335,7 @@ class SwinBlock(BaseModule):
         self.with_cp = with_cp
 
         self.norm1 = build_norm_layer(norm_cfg, embed_dims)[1]
+        
         self.attn = ShiftWindowMSA(
             embed_dims=embed_dims,
             num_heads=num_heads,
@@ -433,6 +437,7 @@ class SwinBlockSequence(BaseModule):
 
         self.blocks = ModuleList()
         
+        
         for i in range(depth):
             block = SwinBlock(
                 embed_dims=embed_dims,
@@ -450,7 +455,7 @@ class SwinBlockSequence(BaseModule):
                 with_cp=with_cp,
                 init_cfg=None)
             self.blocks.append(block)
-
+       
         self.downsample = downsample
 
     def forward(self, x, hw_shape):
@@ -547,10 +552,10 @@ class SwinTransformer(BaseModule):
                  convert_weights=False,
                  frozen_stages=-1,
                  init_cfg=None):        
-        self.convert_weights = convert_weights
-        self.frozen_stages = frozen_stages
+        self.convert_weights = convert_weights  # True
+        self.frozen_stages = frozen_stages      # -1
         if isinstance(pretrain_img_size, int):
-            pretrain_img_size = to_2tuple(pretrain_img_size)
+            pretrain_img_size = to_2tuple(pretrain_img_size)        # (224, 224)
         elif isinstance(pretrain_img_size, tuple):
             if len(pretrain_img_size) == 1:
                 pretrain_img_size = to_2tuple(pretrain_img_size[0])
@@ -558,6 +563,7 @@ class SwinTransformer(BaseModule):
                 f'The size of image should have length 1 or 2, ' \
                 f'but got {len(pretrain_img_size)}'
 
+        
         assert not (init_cfg and pretrained), \
             'init_cfg and pretrained cannot be specified at the same time'
         if isinstance(pretrained, str):
@@ -568,7 +574,10 @@ class SwinTransformer(BaseModule):
             self.init_cfg = init_cfg
         else:
             raise TypeError('pretrained must be a str or None')
+        # pretrained: local상의 pretrained model을 통해 fine tuning을 진행할 경우
+        # 특정 링크를 통해 pretrained model을 다운받고 fine tuning을 진행할 경우
 
+       
         super(SwinTransformer, self).__init__(init_cfg=init_cfg)
         
         num_layers = len(depths)
@@ -586,6 +595,7 @@ class SwinTransformer(BaseModule):
             norm_cfg=norm_cfg if patch_norm else None,
             init_cfg=None)
 
+        
         if self.use_abs_pos_embed:
             patch_row = pretrain_img_size[0] // patch_size
             patch_col = pretrain_img_size[1] // patch_size
@@ -595,13 +605,15 @@ class SwinTransformer(BaseModule):
 
         self.drop_after_pos = nn.Dropout(p=drop_rate)
 
+        
         # set stochastic depth decay rule
         total_depth = sum(depths)
         dpr = [
             x.item() for x in torch.linspace(0, drop_path_rate, total_depth)
         ]
+       
 
-        self.stages = ModuleList()
+        self.stages = ModuleList()      
         in_channels = embed_dims
         for i in range(num_layers):
             if i < num_layers - 1:
@@ -611,9 +623,10 @@ class SwinTransformer(BaseModule):
                     stride=strides[i + 1],
                     norm_cfg=norm_cfg if patch_norm else None,
                     init_cfg=None)
-                
             else:
                 downsample = None
+                
+            
             stage = SwinBlockSequence(
                 embed_dims=in_channels,
                 num_heads=num_heads[i],
@@ -631,15 +644,20 @@ class SwinTransformer(BaseModule):
                 with_cp=with_cp,
                 init_cfg=None)
             self.stages.append(stage)
+            
+            
             if downsample:
                 in_channels = downsample.out_channels
+        
         self.num_features = [int(embed_dims * 2**i) for i in range(num_layers)]
+        
         # Add a norm layer for each output
         for i in out_indices:
             layer = build_norm_layer(norm_cfg, self.num_features[i])[1]
             layer_name = f'norm{i}'
             self.add_module(layer_name, layer)
-
+      
+      
     def train(self, mode=True):
         """Convert the model into training mode while keep layers freezed."""
         super(SwinTransformer, self).train(mode)
@@ -687,12 +705,15 @@ class SwinTransformer(BaseModule):
                                                   f'{self.__class__.__name__} '
             ckpt = _load_checkpoint(
                 self.init_cfg.checkpoint, logger=logger, map_location='cpu')
+            
             if 'state_dict' in ckpt:
                 _state_dict = ckpt['state_dict']
             elif 'model' in ckpt:
                 _state_dict = ckpt['model']
             else:
                 _state_dict = ckpt
+
+            
             if self.convert_weights:
                 # supported loading weight from original repo,
                 _state_dict = swin_converter(_state_dict)
@@ -701,11 +722,11 @@ class SwinTransformer(BaseModule):
             for k, v in _state_dict.items():
                 if k.startswith('backbone.'):
                     state_dict[k[9:]] = v
-
+            
             # strip prefix of state_dict
             if list(state_dict.keys())[0].startswith('module.'):
                 state_dict = {k[7:]: v for k, v in state_dict.items()}
-
+        
             # reshape absolute position embedding
             if state_dict.get('absolute_pos_embed') is not None:
                 absolute_pos_embed = state_dict['absolute_pos_embed']
@@ -716,7 +737,7 @@ class SwinTransformer(BaseModule):
                 else:
                     state_dict['absolute_pos_embed'] = absolute_pos_embed.view(
                         N2, H, W, C2).permute(0, 3, 1, 2).contiguous()
-
+            
             # interpolate position bias table if needed
             relative_position_bias_table_keys = [
                 k for k in state_dict.keys()
@@ -738,7 +759,7 @@ class SwinTransformer(BaseModule):
                         mode='bicubic')
                     state_dict[table_key] = table_pretrained_resized.view(
                         nH2, L2).permute(1, 0).contiguous()
-
+        
             # load state_dict
             self.load_state_dict(state_dict, False)
 

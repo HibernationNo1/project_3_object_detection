@@ -43,6 +43,8 @@ class LoadImageFromFile:
         self.color_type = color_type
         self.channel_order = channel_order
         self.file_client_args = file_client_args.copy()
+        
+  
         self.file_client = None
 
     def __call__(self, results):

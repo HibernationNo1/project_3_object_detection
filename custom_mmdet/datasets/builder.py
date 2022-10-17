@@ -26,6 +26,7 @@ if platform.system() != 'Windows':
     resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, hard_limit))
 
 DATASETS = Registry('dataset')
+
 PIPELINES = Registry('pipeline')
 
 
@@ -124,8 +125,8 @@ def build_dataloader(dataset,
     Returns:
         DataLoader: A PyTorch dataloader.
     """
+    
     rank, world_size = get_dist_info()
-
     if dist:
         # When model is :obj:`DistributedDataParallel`,
         # `batch_size` of :obj:`dataloader` is the
@@ -186,14 +187,16 @@ def build_dataloader(dataset,
         worker_init_fn, num_workers=num_workers, rank=rank,
         seed=seed) if seed is not None else None
 
+    
     if (TORCH_VERSION != 'parrots'
             and digit_version(TORCH_VERSION) >= digit_version('1.7.0')):
+        
         kwargs['persistent_workers'] = persistent_workers
     elif persistent_workers is True:
+       
         warnings.warn('persistent_workers is invalid because your pytorch '
                       'version is lower than 1.7.0')
-    
-    
+   
     data_loader = DataLoader(
         dataset,
         batch_size=batch_size,
@@ -204,7 +207,7 @@ def build_dataloader(dataset,
         pin_memory=kwargs.pop('pin_memory', False),
         worker_init_fn=init_fn,
         **kwargs)
-        
+    
 
     return data_loader
 

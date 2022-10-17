@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
+from tkinter import E
 
 import torch
 import torch.nn as nn
@@ -27,9 +28,12 @@ class RPNHead(AnchorHead):
                  num_convs=1,
                  **kwargs):
         self.num_convs = num_convs
+        
         super(RPNHead, self).__init__(
             1, in_channels, init_cfg=init_cfg, **kwargs)
 
+        
+        
     def _init_layers(self):
         """Initialize layers of the head."""
         if self.num_convs > 1:

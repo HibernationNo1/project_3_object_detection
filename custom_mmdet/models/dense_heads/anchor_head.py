@@ -61,6 +61,7 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
                  test_cfg=None,
                  init_cfg=dict(type='Normal', layer='Conv2d', std=0.01)):
         super(AnchorHead, self).__init__(init_cfg)
+        
         self.in_channels = in_channels
         self.num_classes = num_classes
         self.feat_channels = feat_channels
@@ -77,10 +78,12 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
         self.bbox_coder = build_bbox_coder(bbox_coder)
         self.loss_cls = build_loss(loss_cls)
         self.loss_bbox = build_loss(loss_bbox)
+        
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
         if self.train_cfg:
             self.assigner = build_assigner(self.train_cfg.assigner)
+            
             if hasattr(self.train_cfg,
                        'sampler') and self.train_cfg.sampler.type.split(
                            '.')[-1] != 'PseudoSampler':
@@ -100,15 +103,19 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
             else:
                 self.sampling = False
                 sampler_cfg = dict(type='PseudoSampler')
+            
             self.sampler = build_sampler(sampler_cfg, context=self)
         self.fp16_enabled = False
-
+        
         self.prior_generator = build_prior_generator(anchor_generator)
 
+        
         # Usually the numbers of anchors for each level are the same
         # except SSD detectors. So it is an int in the most dense
         # heads but a list of int in SSDHead
         self.num_base_priors = self.prior_generator.num_base_priors[0]
+        
+        
         self._init_layers()
 
     @property

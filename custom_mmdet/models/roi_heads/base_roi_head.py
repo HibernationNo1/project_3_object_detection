@@ -25,7 +25,7 @@ class BaseRoIHead(BaseModule, metaclass=ABCMeta):
         if shared_head is not None:
             shared_head.pretrained = pretrained
             self.shared_head = build_shared_head(shared_head)
-
+        
         if bbox_head is not None:
             self.init_bbox_head(bbox_roi_extractor, bbox_head)
 

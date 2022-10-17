@@ -27,8 +27,11 @@ class RandomSampler(BaseSampler):
         from custom_mmdet.core.bbox import demodata
         super(RandomSampler, self).__init__(num, pos_fraction, neg_pos_ub,
                                             add_gt_as_proposals)
-        self.rng = demodata.ensure_rng(kwargs.get('rng', None))
 
+        self.rng = demodata.ensure_rng(kwargs.get('rng', None))
+      
+        
+        
     def random_choice(self, gallery, num):
         """Random select some elements from the gallery.
 

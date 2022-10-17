@@ -7,27 +7,26 @@ import warnings
 
 from labelme import NpEncoder
 
+
 import mmcv
+
 
 from mmcv.utils import get_logger
 from mmcv.utils import get_git_hash
 
+
 import torch
 import torch.distributed as dist
 
+
 from custom_mmdet import __version__
 from custom_mmdet.utils import collect_env, get_device
+
 from custom_mmdet.apis import init_random_seed, set_random_seed, train_detector
 from custom_mmdet.models import build_detector
 from custom_mmdet.datasets import build_dataset
 
-
-
-# from mmdet import __version__
-# from mmdet.utils import collect_env, get_device
-# from mmdet.apis import init_random_seed, set_random_seed, train_detector
-# from mmdet.models import build_detector
-# from mmdet.datasets import build_dataset
+from mmcv.utils.logging import logger_initialized
 
 def train(cfg, args):   
     print(f'pytorch version: {torch.__version__}')
@@ -66,7 +65,8 @@ def train(cfg, args):
  
     cfg.dump(os.path.join(work_dir, os.path.basename(args.cfg)))        # save config file(.py)
     
-    with open(cfg.data.train.ann_file, "r") as fp:
+    
+    with open(cfg.data.train.ann_file, "r", encoding="utf-8") as fp:
         data_ann_file = json.load(fp)   
     json.dump(data_ann_file, open(os.path.join(work_dir, "dataset.json"), "w"), indent=4, cls=NpEncoder)        # save dataset file for test
     
@@ -77,7 +77,7 @@ def train(cfg, args):
     
     # build dataset
     datasets = [build_dataset(cfg.data.train)]      # <class 'mmdet.datasets.custom.CocoDataset'>
-       
+  
     if cfg.model.type =='MaskRCNN' :
         cfg.model.roi_head.bbox_head.num_classes = len(datasets[0].CLASSES)
         cfg.model.roi_head.mask_head.num_classes = len(datasets[0].CLASSES)    
@@ -85,23 +85,24 @@ def train(cfg, args):
         cfg.model.mask_head.num_classes
        
     
-    
     # build model
     model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
+    
 
+    
     if cfg.pretrained is not None:  # fine tuning
         model.init_weights()
-
+ 
     if cfg.checkpoint_config is not None:   
         # save mmdet version, config file content and class names in
         # checkpoints as meta data
         cfg.checkpoint_config.meta = dict(
             mmdet_version=__version__ + get_git_hash()[:7],
             CLASSES=datasets[0].CLASSES)
-    
+      
     
     # train_detector
     train_detector(

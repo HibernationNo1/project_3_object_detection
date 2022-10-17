@@ -6,6 +6,7 @@ import json
 import numpy as np
 
 import PIL
+from PIL import ImageDraw
 import cv2
 
 class NpEncoder(json.JSONEncoder):
@@ -117,7 +118,6 @@ class labelme_custom():
         print("     val_images")
         for image_dict in tqdm(self.val_dataset["images"]):
             image_path = os.path.join(self.annnotation_dir_path, image_dict['file_name'])
-            
             img = cv2.imread(image_path)
             img_save_path = os.path.join(self.val_images_dir, os.path.basename(image_dict['file_name']))
             cv2.imwrite(img_save_path, img)
@@ -266,7 +266,7 @@ class labelme_custom():
         
         mask = PIL.Image.fromarray(mask)
         xy = list(map(tuple, polygons))  
-        PIL.ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
+        ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
         mask = np.array(mask, dtype=bool)
         return mask
     

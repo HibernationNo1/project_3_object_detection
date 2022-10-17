@@ -73,13 +73,16 @@ class BBoxHead(BaseModule):
                 self.cls_predictor_cfg,
                 in_features=in_channels,
                 out_features=cls_channels)
+        
         if self.with_reg:
             out_dim_reg = 4 if reg_class_agnostic else 4 * num_classes
             self.fc_reg = build_linear_layer(
                 self.reg_predictor_cfg,
                 in_features=in_channels,
                 out_features=out_dim_reg)
+      
         self.debug_imgs = None
+        
         if init_cfg is None:
             self.init_cfg = []
             if self.with_cls:

@@ -37,7 +37,7 @@ class TwoStageDetector(BaseDetector):
         # build_neck : FPN
         if neck is not None:
             self.neck = build_neck(neck)
-        
+       
         
         if rpn_head is not None:
             # build_rpn_head : RPNHead
@@ -45,8 +45,7 @@ class TwoStageDetector(BaseDetector):
             rpn_head_ = rpn_head.copy()
             rpn_head_.update(train_cfg=rpn_train_cfg, test_cfg=test_cfg.rpn)
             self.rpn_head = build_head(rpn_head_)
-        
-
+     
         if roi_head is not None:
             # build_roi_head : StandardRoIHead
             # update train and test cfg here for now
@@ -56,6 +55,7 @@ class TwoStageDetector(BaseDetector):
             roi_head.update(test_cfg=test_cfg.rcnn)
             roi_head.pretrained = pretrained
             self.roi_head = build_head(roi_head)
+       
         
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg

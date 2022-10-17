@@ -82,6 +82,7 @@ class Resize:
                  backend='cv2',
                  interpolation='bilinear',
                  override=False):
+        
         if img_scale is None:
             self.img_scale = None
         else:
@@ -89,7 +90,9 @@ class Resize:
                 self.img_scale = img_scale
             else:
                 self.img_scale = [img_scale]
+            
             assert mmcv.is_list_of(self.img_scale, tuple)
+  
 
         if ratio_range is not None:
             # mode 1: given a scale and a range of image ratio
@@ -606,6 +609,7 @@ class Pad:
                  pad_val=dict(img=0, masks=0, seg=255)):
         self.size = size
         self.size_divisor = size_divisor
+      
         if isinstance(pad_val, float) or isinstance(pad_val, int):
             warnings.warn(
                 'pad_val of float type is deprecated now, '

@@ -8,18 +8,19 @@ from torch.utils.data import Sampler
 
 
 class GroupSampler(Sampler):
-
     def __init__(self, dataset, samples_per_gpu=1):
         assert hasattr(dataset, 'flag')
+       
         self.dataset = dataset        
         self.samples_per_gpu = samples_per_gpu
         self.flag = dataset.flag.astype(np.int64)       # [0 or 1, 0 or 1, ... 0 or 1]  0 : width > height, 1 : width < height
+        
         self.group_sizes = np.bincount(self.flag)       # [count of 0, count of 1]
         self.num_samples = 0
         for i, size in enumerate(self.group_sizes):
             self.num_samples += int(np.ceil(
                 size / self.samples_per_gpu)) * self.samples_per_gpu
-        
+       
 
     def __iter__(self):
         indices = []
