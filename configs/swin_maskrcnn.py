@@ -53,5 +53,5 @@ optimizer = dict(
             'norm': dict(decay_mult=0.)
         }))
 lr_config = dict(warmup_iters=1000, step=[8, 11])
-runner = dict(max_epochs=3)
+runner = dict(max_epochs=5)
 

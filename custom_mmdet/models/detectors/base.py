@@ -125,6 +125,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
                 raise TypeError(f'{name} must be a list, but got {type(var)}')
 
         num_augs = len(imgs)
+        
         if num_augs != len(img_metas):
             raise ValueError(f'num of augmentations ({len(imgs)}) '
                              f'!= num of image meta ({len(img_metas)})')
@@ -134,10 +135,11 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
         # then used for the transformer_head.
         for img, img_meta in zip(imgs, img_metas):
             batch_size = len(img_meta)
+           
             for img_id in range(batch_size):
                 img_meta[img_id]['batch_input_shape'] = tuple(img.size()[-2:])
 
-        
+   
         if num_augs == 1:
             # proposals (List[List[Tensor]]): the outer list indicates
             # test-time augs (multiscale, flip, etc.) and the inner list
@@ -172,6 +174,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             assert len(img_metas) == 1
             return self.onnx_export(img[0], img_metas[0])
 
+       
         if return_loss:
             return self.forward_train(img, img_metas, **kwargs)
         else:
@@ -250,7 +253,9 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
                   DDP, it means the batch size on each GPU), which is used for
                   averaging the logs.
         """
+        
         losses = self(**data)
+        
         loss, log_vars = self._parse_losses(losses)
 
         outputs = dict(
@@ -317,6 +322,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
         
         img = mmcv.imread(img)
         img = img.copy()
+        
         if isinstance(result, tuple):
             bbox_result, segm_result = result
             if isinstance(segm_result, tuple):
@@ -325,22 +331,27 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             bbox_result, segm_result = result, None
         
         bboxes = np.vstack(bbox_result)
+        
         labels = [
             np.full(bbox.shape[0], i, dtype=np.int32)
             for i, bbox in enumerate(bbox_result)
         ]
         labels = np.concatenate(labels)
-        
+       
        
         
         # draw segmentation masks
         segms = None
-        if segm_result is not None and len(labels) > 0:  # non empty
+        if segm_result is not None and len(labels) > 0:  # non empty        
             segms = mmcv.concat_list(segm_result)
+            
             if isinstance(segms[0], torch.Tensor):
                 segms = torch.stack(segms, dim=0).detach().cpu().numpy()
             else:
                 segms = np.stack(segms, axis=0)
+
+       
+        
         # if out_file specified, do not show image in window
         if out_file is not None:
             show = False

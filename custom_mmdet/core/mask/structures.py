@@ -545,7 +545,7 @@ class BitmapMasks(BaseInstanceMasks):
         return boxes
 
 
-class PolygonMasks(BaseInstanceMasks):
+class PolygonMasks(BaseInstanceMasks):      # BaseInstanceMasks 그냥 없애도 됨
     """This class represents masks in the form of polygons.
 
     Polygons is a list of three levels. The first level of the list

@@ -57,6 +57,7 @@ class BBoxHead(BaseModule):
         self.bbox_coder = build_bbox_coder(bbox_coder)
         self.loss_cls = build_loss(loss_cls)
         self.loss_bbox = build_loss(loss_bbox)
+        
 
         in_channels = self.in_channels
         if self.with_avg_pool:
@@ -76,10 +77,12 @@ class BBoxHead(BaseModule):
         
         if self.with_reg:
             out_dim_reg = 4 if reg_class_agnostic else 4 * num_classes
+    
             self.fc_reg = build_linear_layer(
                 self.reg_predictor_cfg,
                 in_features=in_channels,
                 out_features=out_dim_reg)
+   
       
         self.debug_imgs = None
         
@@ -305,6 +308,7 @@ class BBoxHead(BaseModule):
                         bbox_pred.size(0), -1,
                         4)[pos_inds.type(torch.bool),
                            labels[pos_inds.type(torch.bool)]]
+                
                 losses['loss_bbox'] = self.loss_bbox(
                     pos_bbox_pred,
                     bbox_targets[pos_inds.type(torch.bool)],

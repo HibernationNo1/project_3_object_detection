@@ -41,6 +41,9 @@ def build_linear_layer(cfg, *args, **kwargs):
         raise KeyError(f'Unrecognized linear type {layer_type}')
     else:
         linear_layer = LINEAR_LAYERS.get(layer_type)
+    
+    
+    
     layer = linear_layer(*args, **kwargs, **cfg_)
 
     return layer

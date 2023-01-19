@@ -24,7 +24,6 @@ class GroupSampler(Sampler):
 
     def __iter__(self):
         indices = []
-        
         for i, size in enumerate(self.group_sizes):
             if size == 0:
                 continue
@@ -33,11 +32,13 @@ class GroupSampler(Sampler):
             np.random.shuffle(indice)
             num_extra = int(np.ceil(size / self.samples_per_gpu)
                             ) * self.samples_per_gpu - len(indice)
+            
             indice = np.concatenate(
                 [indice, np.random.choice(indice, num_extra)])
             indices.append(indice)   
-
+            
         indices = np.concatenate(indices)
+        
         indices = [
             indices[i * self.samples_per_gpu:(i + 1) * self.samples_per_gpu]
             for i in np.random.permutation(
@@ -45,6 +46,7 @@ class GroupSampler(Sampler):
         ]
         indices = np.concatenate(indices)
         indices = indices.astype(np.int64).tolist()
+
         assert len(indices) == self.num_samples
         return iter(indices)
 

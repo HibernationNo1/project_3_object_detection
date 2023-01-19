@@ -96,6 +96,7 @@ class ConvFCBBoxHead(BBoxHead):
                 self.reg_predictor_cfg,
                 in_features=self.reg_last_dim,
                 out_features=out_dim_reg)
+     
 
         if init_cfg is None:
             # when init_cfg is None,
@@ -171,6 +172,7 @@ class ConvFCBBoxHead(BBoxHead):
 
             for fc in self.shared_fcs:
                 x = self.relu(fc(x))
+
         # separate branches
         x_cls = x
         x_reg = x
@@ -193,6 +195,7 @@ class ConvFCBBoxHead(BBoxHead):
         for fc in self.reg_fcs:
             x_reg = self.relu(fc(x_reg))
 
+    
         cls_score = self.fc_cls(x_cls) if self.with_cls else None
         bbox_pred = self.fc_reg(x_reg) if self.with_reg else None
         return cls_score, bbox_pred

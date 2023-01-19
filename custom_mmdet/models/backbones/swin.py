@@ -98,6 +98,7 @@ class WindowMSA(BaseModule):
         q = q * self.scale
         attn = (q @ k.transpose(-2, -1))
 
+        
         relative_position_bias = self.relative_position_bias_table[
             self.relative_position_index.view(-1)].view(
                 self.window_size[0] * self.window_size[1],
@@ -775,10 +776,11 @@ class SwinTransformer(BaseModule):
             x, hw_shape, out, out_hw_shape = stage(x, hw_shape)
             if i in self.out_indices:
                 norm_layer = getattr(self, f'norm{i}')
+                
                 out = norm_layer(out)
                 out = out.view(-1, *out_hw_shape,
                                self.num_features[i]).permute(0, 3, 1,
                                                              2).contiguous()
                 outs.append(out)
-
+      
         return outs

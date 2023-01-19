@@ -82,7 +82,6 @@ class Resize:
                  backend='cv2',
                  interpolation='bilinear',
                  override=False):
-        
         if img_scale is None:
             self.img_scale = None
         else:
@@ -201,17 +200,21 @@ class Resize:
         """
 
         if self.ratio_range is not None:
+         
             scale, scale_idx = self.random_sample_ratio(
                 self.img_scale[0], self.ratio_range)
         elif len(self.img_scale) == 1:
+     
             scale, scale_idx = self.img_scale[0], 0
         elif self.multiscale_mode == 'range':
+ 
             scale, scale_idx = self.random_sample(self.img_scale)
         elif self.multiscale_mode == 'value':
+ 
             scale, scale_idx = self.random_select(self.img_scale)
         else:
             raise NotImplementedError
-
+     
         results['scale'] = scale
         results['scale_idx'] = scale_idx
 
@@ -304,7 +307,7 @@ class Resize:
         
         
         if 'scale' not in results:
-            if 'scale_factor' in results:                
+            if 'scale_factor' in results:        
                 img_shape = results['img'].shape[:2]
                 scale_factor = results['scale_factor']
                 assert isinstance(scale_factor, float)
@@ -321,7 +324,7 @@ class Resize:
                 if 'scale_factor' in results:
                     results.pop('scale_factor')
                 self._random_scale(results)
-
+    
         self._resize_img(results)
         self._resize_bboxes(results)
         self._resize_masks(results)

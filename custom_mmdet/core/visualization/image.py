@@ -187,7 +187,10 @@ def draw_masks(ax, img, masks, color=None, with_edge=True, alpha=0.8):
     for i, mask in enumerate(masks):
         if with_edge:
             contours, _ = bitmap_to_polygon(mask)
+            
+           
             polygons += [Polygon(c) for c in contours]
+        
 
         color_mask = color[i]
         while tuple(color_mask) in taken_colors:
@@ -265,7 +268,6 @@ def imshow_det_bboxes(img,
 
     img = mmcv.imread(img).astype(np.uint8)
     
-    
     if score_thr > 0:
         assert bboxes is not None and bboxes.shape[1] == 5
         scores = bboxes[:, -1]
@@ -275,12 +277,8 @@ def imshow_det_bboxes(img,
         if segms is not None:
             segms = segms[inds, ...]
     
-    # print(f"len(bboxes) : {len(bboxes)}")
-    # print(f"len(segms) : {len(segms)}")
-    # print(f"len(labels) : {len(labels)}")
-    # exit()
-
     img = mmcv.bgr2rgb(img)
+ 
     width, height = img.shape[1], img.shape[0]
     img = np.ascontiguousarray(img)
 

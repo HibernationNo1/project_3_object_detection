@@ -67,8 +67,11 @@ class LoadImageFromFile:
             filename = results['img_info']['filename']
 
         img_bytes = self.file_client.get(filename)
+   
+        
         img = mmcv.imfrombytes(
             img_bytes, flag=self.color_type, channel_order=self.channel_order)
+       
         if self.to_float32:
             img = img.astype(np.float32)
 
@@ -356,6 +359,7 @@ class LoadAnnotations:
             gt_masks = PolygonMasks(
                 [self.process_polygons(polygons) for polygons in gt_masks], h,
                 w)
+      
         results['gt_masks'] = gt_masks
         results['mask_fields'].append('gt_masks')
         return results
@@ -378,6 +382,7 @@ class LoadAnnotations:
         img_bytes = self.file_client.get(filename)
         results['gt_semantic_seg'] = mmcv.imfrombytes(
             img_bytes, flag='unchanged').squeeze()
+    
         results['seg_fields'].append('gt_semantic_seg')
         return results
 
@@ -400,6 +405,8 @@ class LoadAnnotations:
             results = self._load_labels(results)
         if self.with_mask:
             results = self._load_masks(results)
+        
+       
         if self.with_seg:
             results = self._load_semantic_seg(results)
         return results

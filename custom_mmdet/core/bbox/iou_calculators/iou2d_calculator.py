@@ -199,7 +199,7 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, eps=1e-6):
     # Batch dim: (B1, B2, ... Bn)
     assert bboxes1.shape[:-2] == bboxes2.shape[:-2]
     batch_shape = bboxes1.shape[:-2]
-
+ 
     rows = bboxes1.size(-2)
     cols = bboxes2.size(-2)
     if is_aligned:
@@ -215,7 +215,7 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, eps=1e-6):
         bboxes1[..., 3] - bboxes1[..., 1])
     area2 = (bboxes2[..., 2] - bboxes2[..., 0]) * (
         bboxes2[..., 3] - bboxes2[..., 1])
-
+ 
     if is_aligned:
         lt = torch.max(bboxes1[..., :2], bboxes2[..., :2])  # [B, rows, 2]
         rb = torch.min(bboxes1[..., 2:], bboxes2[..., 2:])  # [B, rows, 2]

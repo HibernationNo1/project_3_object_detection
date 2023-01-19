@@ -46,9 +46,9 @@ def l1_loss(pred, target):
     """
     if target.numel() == 0:
         return pred.sum() * 0
-
     assert pred.size() == target.size()
     loss = torch.abs(pred - target)
+   
     return loss
 
 

@@ -10,9 +10,9 @@ import os
 import torch
 assert torch.cuda.is_available(), "torch.cuda.is_available() is not True!"
 
-# python main.py --mode labelme --cfg configs/labelme_config.py --ann paprika --ratio-val 0.01
+# python main.py --mode labelme --cfg configs/labelme_config.py --ann pear --ratio-val 0.2
 # python main.py --mode train --cfg configs/swin_maskrcnn.py --cat paprika --epo 40
-# python main.py --mode test --cfg configs/swin_maskrcnn.py --model_dir 2022-07-06-1855_strawberry --cat strawberry 
+# python main.py --mode test --cfg configs/swin_maskrcnn.py --model_dir 2022-11-08-168_strawberry --cat strawberry 
 
 
 # python main.py --mode train --cfg configs/swin_solov2.py --cat paprika --epo 40
@@ -125,8 +125,9 @@ def parse_args():
     return args
 
 
-def set_config(args):
+def set_config(args):       
     cfg = Config.fromfile(args.cfg)
+   
     assert isinstance(cfg, mmcv.Config), \
         f'cfg got wrong type: {type(cfg)}, expected mmcv.Config'
             

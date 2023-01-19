@@ -159,7 +159,8 @@ class FPN(BaseModule):
             lateral_conv(inputs[i + self.start_level])
             for i, lateral_conv in enumerate(self.lateral_convs)
         ]
-
+        
+        
         # build top-down path
         used_backbone_levels = len(laterals)
         for i in range(used_backbone_levels - 1, 0, -1):
@@ -202,4 +203,5 @@ class FPN(BaseModule):
                         outs.append(self.fpn_convs[i](F.relu(outs[-1])))
                     else:
                         outs.append(self.fpn_convs[i](outs[-1]))
+      
         return tuple(outs)

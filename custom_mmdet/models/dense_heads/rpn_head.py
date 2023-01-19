@@ -28,7 +28,6 @@ class RPNHead(AnchorHead):
                  num_convs=1,
                  **kwargs):
         self.num_convs = num_convs
-        
         super(RPNHead, self).__init__(
             1, in_channels, init_cfg=init_cfg, **kwargs)
 
@@ -65,6 +64,7 @@ class RPNHead(AnchorHead):
 
     def forward_single(self, x):
         """Forward feature map of a single scale level."""
+      
         x = self.rpn_conv(x)
         x = F.relu(x, inplace=True)
         rpn_cls_score = self.rpn_cls(x)
@@ -94,6 +94,7 @@ class RPNHead(AnchorHead):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
+        
         losses = super(RPNHead, self).loss(
             cls_scores,
             bbox_preds,
@@ -101,6 +102,7 @@ class RPNHead(AnchorHead):
             None,
             img_metas,
             gt_bboxes_ignore=gt_bboxes_ignore)
+
         return dict(
             loss_rpn_cls=losses['loss_cls'], loss_rpn_bbox=losses['loss_bbox'])
 
@@ -140,8 +142,10 @@ class RPNHead(AnchorHead):
                 are bounding box positions (tl_x, tl_y, br_x, br_y) and the
                 5-th column is a score between 0 and 1.
         """
+
         cfg = self.test_cfg if cfg is None else cfg
         cfg = copy.deepcopy(cfg)
+        
         img_shape = img_meta['img_shape']
 
         # bboxes from different level should be independent during NMS,
@@ -185,7 +189,8 @@ class RPNHead(AnchorHead):
                 scores.new_full((scores.size(0), ),
                                 level_idx,
                                 dtype=torch.long))
-
+            
+     
         return self._bbox_post_process(mlvl_scores, mlvl_bbox_preds,
                                        mlvl_valid_anchors, level_ids, cfg,
                                        img_shape)

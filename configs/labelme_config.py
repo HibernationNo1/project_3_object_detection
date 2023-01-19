@@ -19,9 +19,9 @@ options = dict(
 
 json = dict(
     category = None,
-    valid_categorys=['paprika', "strawberry", "melon", 'onion', "seeding_pepper", 'cucumber', 'tomato', 'test'],
+    valid_categorys=['paprika', "strawberry", "melon", 'onion', "seeding_pepper", 'cucumber', 'tomato', 'pear'],
     valid_object = ["leaf", 'midrid', 'stem', 'petiole', 'flower', 'fruit', 'y_fruit', 'cap', 
-                    'first_midrid', 'last_midrid', 'mid_midrid', 'side_midrid'],
+                    'first_midrid', 'last_midrid', 'mid_midrid', 'side_midrid', "i"],
     train_file_name = 'train_dataset.json',
     val_file_name = 'val_dataset.json'
     )

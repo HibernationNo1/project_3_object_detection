@@ -72,7 +72,6 @@ data = dict(
         img_prefix=data_root  + "/val/" + data_category + "/",               
         pipeline=val_pipeline),
     test=dict(
-        batch_size = 10,
         type=dataset_type,
         ann_file= None,                                                          # work_dir/model_dir/dataset.json
         img_prefix=data_root  + "/test/" + data_category + "/",                 # test할 image의 dir        

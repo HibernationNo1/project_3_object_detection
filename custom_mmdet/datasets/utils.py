@@ -57,6 +57,7 @@ def replace_ImageToTensor(pipelines):
         >>> assert expected_pipelines == replace_ImageToTensor(pipelines)
     """
     pipelines = copy.deepcopy(pipelines)
+  
     for i, pipeline in enumerate(pipelines):
         if pipeline['type'] == 'MultiScaleFlipAug':
             assert 'transforms' in pipeline
@@ -69,6 +70,8 @@ def replace_ImageToTensor(pipelines):
                 'recommended to manually replace it in the test '
                 'data pipeline in your config file.', UserWarning)
             pipelines[i] = {'type': 'DefaultFormatBundle'}
+    
+  
     return pipelines
 
 
@@ -144,7 +147,6 @@ class NumClassCheckHook(Hook):
             for name, module in model.named_modules():
                 if hasattr(module, 'num_classes') and not isinstance(
                         module, (RPNHead, VGG, FusedSemanticHead, GARPNHead)):
-
                     assert module.num_classes == len(dataset.CLASSES), \
                         (f'The `num_classes` ({module.num_classes}) in '
                          f'{module.__class__.__name__} of '

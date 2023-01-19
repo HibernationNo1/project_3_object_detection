@@ -192,7 +192,8 @@ def mask_cross_entropy(pred,
     assert reduction == 'mean' and avg_factor is None
     num_rois = pred.size()[0]
     inds = torch.arange(0, num_rois, dtype=torch.long, device=pred.device)
-    pred_slice = pred[inds, label].squeeze(1)
+    pred_slice = pred[inds, label].squeeze(1)        
+        
     return F.binary_cross_entropy_with_logits(
         pred_slice, target, weight=class_weight, reduction='mean')[None]
 
@@ -278,24 +279,27 @@ class CrossEntropyLoss(nn.Module):
             torch.Tensor: The calculated loss.
         """
         assert reduction_override in (None, 'none', 'mean', 'sum')
-        reduction = (
-            reduction_override if reduction_override else self.reduction)
+        reduction = (reduction_override if reduction_override else self.reduction)
+        
         if ignore_index is None:
             ignore_index = self.ignore_index
-
+      
+        
         if self.class_weight is not None:
             class_weight = cls_score.new_tensor(
                 self.class_weight, device=cls_score.device)
         else:
             class_weight = None
+            
         loss_cls = self.loss_weight * self.cls_criterion(
-            cls_score,
-            label,
-            weight,
-            class_weight=class_weight,
-            reduction=reduction,
-            avg_factor=avg_factor,
-            ignore_index=ignore_index,
-            avg_non_ignore=self.avg_non_ignore,
-            **kwargs)
+                                            cls_score,
+                                            label,
+                                            weight,
+                                            class_weight=class_weight,
+                                            reduction=reduction,
+                                            avg_factor=avg_factor,
+                                            ignore_index=ignore_index,
+                                            avg_non_ignore=self.avg_non_ignore,
+                                            **kwargs)
+     
         return loss_cls

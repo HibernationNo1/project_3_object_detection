@@ -358,7 +358,7 @@ class PatchMerging(BaseModule):
         assert isinstance(input_size, Sequence), f'Expect ' \
                                                  f'input_size is ' \
                                                  f'`Sequence` ' \
-                                                 f'but get {input_size}'
+                                                 f'but get {input_size}' 
 
         H, W = input_size
         assert L == H * W, 'input feature has wrong size'

@@ -27,6 +27,7 @@ def test(cfg, args):
     print(f'pytorch version: {torch.__version__}')
     print(f'Cuda is available: {torch.cuda.is_available()}')
     
+
     cfg = compat_cfg(cfg)
     path_dict = check_set_dir_root(cfg, args)
    
@@ -56,6 +57,7 @@ def test(cfg, args):
             # Replace 'ImageToTensor' to 'DefaultFormatBundle'
             cfg.data.test.pipeline = replace_ImageToTensor(
                 cfg.data.test.pipeline)
+      
     elif isinstance(cfg.data.test, list):
         for ds_cfg in cfg.data.test:
             ds_cfg.test_mode = True
@@ -64,10 +66,10 @@ def test(cfg, args):
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
 
     
- 
-    batch_size = cfg.data.test.batch_size
-    batch_imgs_path = glob.glob(os.path.join(path_dict['test_images_dir'], "*.jpg"))
-    batch_imgs_list = [batch_imgs_path[x:x + batch_size] for x in range(0, len(batch_imgs_path), batch_size)]
+    batch_size = 1
+    all_imgs_path = glob.glob(os.path.join(path_dict['test_images_dir'], "*.jpg"))
+    batch_imgs_list = [all_imgs_path[x:x + batch_size] for x in range(0, len(all_imgs_path), batch_size)]
+    
 
     model = init_detector(cfg, path_dict['model_file'], device = cfg.device)
     classes = model.CLASSES
@@ -77,20 +79,21 @@ def test(cfg, args):
         codel_config = model.cfg  
         model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
         model.cfg = codel_config
-
-        for batch_imgs_path in tqdm(batch_imgs_list):   
+    
+        for batch_imgs in tqdm(batch_imgs_list):
             with torch.no_grad():
-                results = inference_detector(model, batch_imgs_path)
-
+                results = inference_detector(model, batch_imgs, batch_size)
+            
+        
             out_files = []
-            for img_path in batch_imgs_path:
+            for img_path in batch_imgs:
                 file_name = os.path.basename(img_path)
                 out_file = os.path.join(path_dict['result_img_dir'], file_name)
                 out_files.append(out_file)
             
-            for img_path, out_file, result in zip(batch_imgs_path, out_files, results):
+            for img_path, out_file, result in zip(batch_imgs, out_files, results):
                 img = cv2.imread(img_path)      
-    
+                
                 model.module.show_result(
                         img, 
                         result,
@@ -101,11 +104,11 @@ def test(cfg, args):
                         out_file=out_file,
                         score_thr=args.show_score_thr)
 
-            if cfg.get_result_ann:
-                result_list = get_result_ann(results, batch_imgs_path, classes, args.show_score_thr)
- 
-            results = encode_mask(results)
-            outputs.extend(results)
+        if cfg.get_result_ann:
+            result_list = get_result_ann(results, all_imgs_path, classes, args.show_score_thr)
+
+        results = encode_mask(results)
+        outputs.extend(results)
     else:   # TODO
         # model = build_ddp(
         #     model,

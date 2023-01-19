@@ -42,10 +42,12 @@ class TwoStageDetector(BaseDetector):
         if rpn_head is not None:
             # build_rpn_head : RPNHead
             rpn_train_cfg = train_cfg.rpn if train_cfg is not None else None
+            
             rpn_head_ = rpn_head.copy()
             rpn_head_.update(train_cfg=rpn_train_cfg, test_cfg=test_cfg.rpn)
             self.rpn_head = build_head(rpn_head_)
-     
+
+      
         if roi_head is not None:
             # build_roi_head : StandardRoIHead
             # update train and test cfg here for now
@@ -73,8 +75,10 @@ class TwoStageDetector(BaseDetector):
     def extract_feat(self, img):
         """Directly extract features from the backbone+neck."""
         x = self.backbone(img)
+        
         if self.with_neck:
             x = self.neck(x)
+
         return x
 
     def forward_dummy(self, img):
@@ -88,6 +92,7 @@ class TwoStageDetector(BaseDetector):
         # rpn
         if self.with_rpn:
             rpn_outs = self.rpn_head(x)
+            
             outs = outs + (rpn_outs, )
         proposals = torch.randn(1000, 4).to(img.device)
         # roi_head
@@ -152,12 +157,16 @@ class TwoStageDetector(BaseDetector):
         else:
             proposal_list = proposals
 
+    
+        
         roi_losses = self.roi_head.forward_train(x, img_metas, proposal_list,
                                                  gt_bboxes, gt_labels,
                                                  gt_bboxes_ignore, gt_masks,
                                                  **kwargs)
+        
         losses.update(roi_losses)
 
+  
         return losses
 
     async def async_simple_test(self,
@@ -177,6 +186,7 @@ class TwoStageDetector(BaseDetector):
 
         return await self.roi_head.async_simple_test(
             x, proposal_list, img_meta, rescale=rescale)
+        
 
     def simple_test(self, img, img_metas, proposals=None, rescale=False):
         """Test without augmentation."""
@@ -187,7 +197,7 @@ class TwoStageDetector(BaseDetector):
             proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
         else:
             proposal_list = proposals
-
+            
         return self.roi_head.simple_test(
             x, proposal_list, img_metas, rescale=rescale)
 
